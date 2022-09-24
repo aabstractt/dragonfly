@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/entity/damage"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/entity/healing"
+	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -56,4 +57,48 @@ type Living interface {
 	Speed() float64
 	// SetSpeed sets the speed of an entity to a new value.
 	SetSpeed(float64)
+}
+
+type ActualLiving struct {
+	e       *world.ActualEntity
+	s       *session.Session
+	effects *EffectManager
+}
+
+func NewLiving(e *world.ActualEntity) world.EntityComponent {
+	return NewLivingWithSession(e, session.Nop)
+}
+
+func NewLivingWithSession(e *world.ActualEntity, s *session.Session) world.EntityComponent {
+	return &ActualLiving{e: e, effects: NewEffectManager(), s: s}
+}
+
+// AddEffect adds an effect.Effect to the Living. If the effect is instant, it
+// is applied to the entity immediately. If not, the effect is applied to the
+// entity every time the Tick method is called. AddEffect will overwrite any
+// effects present if the level of the effect is higher than the existing one,
+// or if the effects' levels are equal and the new effect has a longer
+// duration.
+func (l *ActualLiving) AddEffect(e effect.Effect) {
+	l.s.SendEffect(l.effects.Add(e, l))
+	l.updateState()
+}
+
+// RemoveEffect removes any effect that might currently be active on the Living.
+func (l *ActualLiving) RemoveEffect(e effect.Type) {
+	l.effects.Remove(e, l)
+	l.s.SendEffectRemoval(e)
+	l.updateState()
+}
+
+// Effect returns the effect instance and true if the Living has the effect. If
+// not found, it will return an empty effect instance and false.
+func (l *ActualLiving) Effect(e effect.Type) (effect.Effect, bool) {
+	return l.effects.Effect(e)
+}
+
+// Effects returns any effect currently applied to the entity. The returned
+// effects are guaranteed not to have expired when returned.
+func (l *ActualLiving) Effects() []effect.Effect {
+	return l.effects.Effects()
 }

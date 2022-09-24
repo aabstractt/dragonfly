@@ -19,6 +19,7 @@ require (
 )
 
 require (
+	github.com/cosmos72/gls v0.0.0-20180519201422-29add83bde4c // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
