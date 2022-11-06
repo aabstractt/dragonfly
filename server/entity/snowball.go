@@ -18,12 +18,16 @@ type Snowball struct {
 
 	owner world.Entity
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewSnowball ...
 func NewSnowball(pos mgl64.Vec3, owner world.Entity) *Snowball {
-	s := &Snowball{c: newProjectileComputer(0.01, 0.01), owner: owner}
+	s := &Snowball{c: ProjectileConfig{
+		Gravity: 0.01,
+		Drag:    0.01,
+		HitFunc: snowballParticles,
+	}.NewTicker(), owner: owner}
 	s.transform = newTransform(s, pos)
 
 	return s
@@ -36,44 +40,14 @@ func (s *Snowball) Type() world.EntityType {
 
 // Tick ...
 func (s *Snowball) Tick(w *world.World, current int64) {
-	if s.close {
-		_ = s.Close()
-		return
-	}
-	s.mu.Lock()
-	m, result := s.c.TickMovement(s, s.pos, s.vel, 0, 0, s.ignores)
-	s.pos, s.vel = m.pos, m.vel
-	s.mu.Unlock()
-
-	s.age++
-	m.Send()
-
-	if m.pos[1] < float64(w.Range()[0]) && current%10 == 0 {
-		s.close = true
-		return
-	}
-
-	if result != nil {
-		for i := 0; i < 6; i++ {
-			w.AddParticle(result.Position(), particle.SnowballPoof{})
-		}
-
-		if r, ok := result.(trace.EntityResult); ok {
-			if l, ok := r.Entity().(Living); ok {
-				if _, vulnerable := l.Hurt(0.0, ProjectileDamageSource{Projectile: s, Owner: s.Owner()}); vulnerable {
-					l.KnockBack(m.pos, 0.45, 0.3608)
-				}
-			}
-		}
-
-		s.close = true
-	}
+	s.c.Tick(s, &s.transform, w, current)
 }
 
-// ignores returns whether the snowball should ignore collision with the entity passed.
-func (s *Snowball) ignores(entity world.Entity) bool {
-	_, ok := entity.(Living)
-	return !ok || entity == s || (s.age < 5 && entity == s.owner)
+// snowballParticles spawns 6 particle.SnowballPoof at a trace.Result.
+func snowballParticles(res trace.Result, w *world.World, _ world.Entity) {
+	for i := 0; i < 6; i++ {
+		w.AddParticle(res.Position(), particle.SnowballPoof{})
+	}
 }
 
 // New creates a snowball with the position, velocity, yaw, and pitch provided. It doesn't spawn the snowball,

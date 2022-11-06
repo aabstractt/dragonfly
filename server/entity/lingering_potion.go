@@ -19,7 +19,7 @@ type LingeringPotion struct {
 
 	owner world.Entity
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewLingeringPotion ...
@@ -27,7 +27,7 @@ func NewLingeringPotion(pos mgl64.Vec3, owner world.Entity, t potion.Potion) *Li
 	l := &LingeringPotion{
 		owner:      owner,
 		splashable: splashable{t: t, m: 0.25},
-		c:          newProjectileComputer(0.05, 0.01),
+		c:          newProjectileTicker(0.05, 0.01),
 	}
 	l.transform = newTransform(l, pos)
 	return l

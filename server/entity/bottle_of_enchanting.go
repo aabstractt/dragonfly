@@ -2,6 +2,7 @@ package entity
 
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/block/cube/trace"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/internal/nbtconv"
 	"github.com/df-mc/dragonfly/server/world"
@@ -19,12 +20,17 @@ type BottleOfEnchanting struct {
 
 	owner world.Entity
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewBottleOfEnchanting ...
 func NewBottleOfEnchanting(pos mgl64.Vec3, owner world.Entity) *BottleOfEnchanting {
-	b := &BottleOfEnchanting{owner: owner, c: newProjectileComputer(0.07, 0.01)}
+	b := &BottleOfEnchanting{owner: owner, c: ProjectileConfig{
+		Gravity: 0.07,
+		Drag:    0.01,
+		Damage:  -1,
+		HitFunc: breakExperienceBottle,
+	}.NewTicker()}
 	b.transform = newTransform(b, pos)
 	return b
 }
@@ -41,41 +47,20 @@ func (b *BottleOfEnchanting) Glint() bool {
 
 // Tick ...
 func (b *BottleOfEnchanting) Tick(w *world.World, current int64) {
-	if b.close {
-		_ = b.Close()
-		return
-	}
-	b.mu.Lock()
-	m, result := b.c.TickMovement(b, b.pos, b.vel, 0, 0, b.ignores)
-	b.pos, b.vel = m.pos, m.vel
-	b.mu.Unlock()
-
-	b.age++
-	m.Send()
-
-	if m.pos[1] < float64(w.Range()[0]) && current%10 == 0 {
-		b.close = true
-		return
-	}
-
-	if result != nil {
-		colour, _ := effect.ResultingColour(nil)
-		w.AddParticle(m.pos, particle.Splash{Colour: colour})
-		w.PlaySound(m.pos, sound.GlassBreak{})
-
-		for _, orb := range NewExperienceOrbs(m.pos, rand.Intn(9)+3) {
-			orb.SetVelocity(mgl64.Vec3{(rand.Float64()*0.2 - 0.1) * 2, rand.Float64() * 0.4, (rand.Float64()*0.2 - 0.1) * 2})
-			w.AddEntity(orb)
-		}
-
-		b.close = true
-	}
+	b.c.Tick(b, &b.transform, w, current)
 }
 
-// ignores returns whether the BottleOfEnchanting should ignore collision with the entity passed.
-func (b *BottleOfEnchanting) ignores(entity world.Entity) bool {
-	_, ok := entity.(Living)
-	return !ok || entity == b || (b.age < 5 && entity == b.owner)
+// breakExperienceBottle breaks a BottleOfEnchanting at a trace.Result's
+// position.
+func breakExperienceBottle(res trace.Result, w *world.World, _ world.Entity) {
+	colour, _ := effect.ResultingColour(nil)
+	w.AddParticle(res.Position(), particle.Splash{Colour: colour})
+	w.PlaySound(res.Position(), sound.GlassBreak{})
+
+	for _, orb := range NewExperienceOrbs(res.Position(), rand.Intn(9)+3) {
+		orb.SetVelocity(mgl64.Vec3{(rand.Float64()*0.2 - 0.1) * 2, rand.Float64() * 0.4, (rand.Float64()*0.2 - 0.1) * 2})
+		w.AddEntity(orb)
+	}
 }
 
 // New creates a BottleOfEnchanting with the position, velocity, yaw, and pitch provided. It doesn't spawn the

@@ -18,12 +18,17 @@ type Egg struct {
 
 	owner world.Entity
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewEgg ...
 func NewEgg(pos mgl64.Vec3, owner world.Entity) *Egg {
-	s := &Egg{c: newProjectileComputer(0.03, 0.01), owner: owner}
+	s := &Egg{c: ProjectileConfig{
+		Gravity: 0.03,
+		Drag:    0.01,
+		Damage:  0,
+		HitFunc: eggParticles,
+	}.NewTicker(), owner: owner}
 	s.transform = newTransform(s, pos)
 
 	return s
@@ -36,46 +41,15 @@ func (egg *Egg) Type() world.EntityType {
 
 // Tick ...
 func (egg *Egg) Tick(w *world.World, current int64) {
-	if egg.close {
-		_ = egg.Close()
-		return
-	}
-	egg.mu.Lock()
-	m, result := egg.c.TickMovement(egg, egg.pos, egg.vel, 0, 0, egg.ignores)
-	egg.pos, egg.vel = m.pos, m.vel
-	egg.mu.Unlock()
-
-	egg.age++
-	m.Send()
-
-	if m.pos[1] < float64(w.Range()[0]) && current%10 == 0 {
-		egg.close = true
-		return
-	}
-
-	if result != nil {
-		for i := 0; i < 6; i++ {
-			w.AddParticle(result.Position(), particle.EggSmash{})
-		}
-
-		if r, ok := result.(trace.EntityResult); ok {
-			if l, ok := r.Entity().(Living); ok {
-				if _, vulnerable := l.Hurt(0.0, ProjectileDamageSource{Projectile: egg, Owner: egg.Owner()}); vulnerable {
-					l.KnockBack(m.pos, 0.45, 0.3608)
-				}
-			}
-		}
-
-		// TODO: Spawn chicken(egg) 12.5% of the time?
-
-		egg.close = true
-	}
+	egg.c.Tick(egg, &egg.transform, w, current)
 }
 
-// ignores returns whether the egg should ignore collision with the entity passed.
-func (egg *Egg) ignores(entity world.Entity) bool {
-	_, ok := entity.(Living)
-	return !ok || entity == egg || (egg.age < 5 && entity == egg.owner)
+// eggParticles spawns 6 particle.EggSmash at a trace.Result.
+func eggParticles(res trace.Result, w *world.World, _ world.Entity) {
+	for i := 0; i < 6; i++ {
+		w.AddParticle(res.Position(), particle.EggSmash{})
+	}
+	// TODO: Spawn chicken(egg) 12.5% of the time.
 }
 
 // New creates a egg with the position, velocity, yaw, and pitch provided. It doesn't spawn the egg,

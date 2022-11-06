@@ -37,7 +37,7 @@ type Arrow struct {
 
 	disallowPickup, obtainArrowOnPickup bool
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewArrow creates a new Arrow and returns it. It is equivalent to calling NewTippedArrow with `potion.Potion{}` as
@@ -67,7 +67,7 @@ func NewTippedArrowWithDamage(pos mgl64.Vec3, yaw, pitch, damage float64, owner 
 		owner:               owner,
 		tip:                 tip,
 		obtainArrowOnPickup: true,
-		c:                   newProjectileComputer(0.05, 0.01),
+		c:                   newProjectileTicker(0.05, 0.01),
 	}
 	a.transform = newTransform(a, pos)
 	return a

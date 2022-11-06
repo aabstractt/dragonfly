@@ -19,12 +19,16 @@ type EnderPearl struct {
 
 	owner world.Entity
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewEnderPearl ...
 func NewEnderPearl(pos mgl64.Vec3, owner world.Entity) *EnderPearl {
-	e := &EnderPearl{c: newProjectileComputer(0.03, 0.01), owner: owner}
+	e := &EnderPearl{c: ProjectileConfig{
+		Gravity: 0.03,
+		Drag:    0.01,
+		HitFunc: teleportOwner,
+	}.NewTicker(), owner: owner}
 	e.transform = newTransform(e, pos)
 
 	return e
@@ -35,6 +39,11 @@ func (e *EnderPearl) Type() world.EntityType {
 	return EnderPearlType{}
 }
 
+// Tick ...
+func (e *EnderPearl) Tick(w *world.World, current int64) {
+	e.c.Tick(e, &e.transform, w, current)
+}
+
 // teleporter represents a living entity that can teleport.
 type teleporter interface {
 	// Teleport teleports the entity to the position given.
@@ -42,57 +51,18 @@ type teleporter interface {
 	Living
 }
 
-// Tick ...
-func (e *EnderPearl) Tick(w *world.World, current int64) {
-	if e.close {
-		_ = e.Close()
-		return
+// teleportOwner teleports the owner to a trace.Result's position.
+func teleportOwner(res trace.Result, w *world.World, owner world.Entity) {
+	if user, ok := owner.(teleporter); ok {
+		w.PlaySound(user.Position(), sound.Teleport{})
+
+		user.Teleport(res.Position())
+
+		w.AddParticle(res.Position(), particle.EndermanTeleportParticle{})
+		w.PlaySound(res.Position(), sound.Teleport{})
+
+		user.Hurt(5, FallDamageSource{})
 	}
-	e.mu.Lock()
-	m, result := e.c.TickMovement(e, e.pos, e.vel, 0, 0, e.ignores)
-	e.pos, e.vel = m.pos, m.vel
-
-	owner := e.owner
-	e.mu.Unlock()
-
-	e.age++
-	m.Send()
-
-	if m.pos[1] < float64(w.Range()[0]) && current%10 == 0 {
-		e.close = true
-		return
-	}
-
-	if result != nil {
-		if r, ok := result.(trace.EntityResult); ok {
-			if l, ok := r.Entity().(Living); ok {
-				if _, vulnerable := l.Hurt(0.0, ProjectileDamageSource{Projectile: e, Owner: owner}); vulnerable {
-					l.KnockBack(m.pos, 0.45, 0.3608)
-				}
-			}
-		}
-
-		if owner != nil {
-			if user, ok := owner.(teleporter); ok {
-				w.PlaySound(user.Position(), sound.Teleport{})
-
-				user.Teleport(m.pos)
-
-				w.AddParticle(m.pos, particle.EndermanTeleportParticle{})
-				w.PlaySound(m.pos, sound.Teleport{})
-
-				user.Hurt(5, FallDamageSource{})
-			}
-		}
-
-		e.close = true
-	}
-}
-
-// ignores returns whether the ender pearl should ignore collision with the entity passed.
-func (e *EnderPearl) ignores(entity world.Entity) bool {
-	_, ok := entity.(Living)
-	return !ok || entity == e || (e.age < 5 && entity == e.owner)
 }
 
 // New creates an ender pearl with the position, velocity, yaw, and pitch provided. It doesn't spawn the ender pearl,

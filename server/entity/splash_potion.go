@@ -19,7 +19,7 @@ type SplashPotion struct {
 
 	owner world.Entity
 
-	c *ProjectileComputer
+	c *ProjectileTicker
 }
 
 // NewSplashPotion ...
@@ -27,7 +27,7 @@ func NewSplashPotion(pos mgl64.Vec3, owner world.Entity, t potion.Potion) *Splas
 	s := &SplashPotion{
 		owner:      owner,
 		splashable: splashable{t: t, m: 0.75},
-		c:          newProjectileComputer(0.05, 0.01),
+		c:          newProjectileTicker(0.05, 0.01),
 	}
 	s.transform = newTransform(s, pos)
 	return s
