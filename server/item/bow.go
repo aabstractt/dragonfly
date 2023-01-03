@@ -93,7 +93,7 @@ func (Bow) Release(releaser Releaser, duration time.Duration, ctx *UseContext) {
 	}
 
 	releaser.PlaySound(sound.BowShoot{})
-	releaser.World().AddEntity(projectile)
+	releaser.World().addEntity(projectile)
 }
 
 // EnchantmentValue ...

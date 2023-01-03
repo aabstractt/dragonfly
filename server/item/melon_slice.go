@@ -19,7 +19,7 @@ func (m MelonSlice) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (m MelonSlice) Consume(_ *world.World, c Consumer) Stack {
+func (m MelonSlice) Consume(w *world.Txn, c Consumer) Stack {
 	c.Saturate(2, 1.2)
 	return Stack{}
 }

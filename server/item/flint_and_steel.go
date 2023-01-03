@@ -32,13 +32,13 @@ type ignitable interface {
 }
 
 // UseOnBlock ...
-func (f FlintAndSteel) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, _ User, ctx *UseContext) bool {
+func (f FlintAndSteel) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
 	ctx.DamageItem(1)
-	if l, ok := w.Block(pos).(ignitable); ok && l.Ignite(pos, w) {
+	if l, ok := w.block(pos).(ignitable); ok && l.Ignite(pos, w) {
 		return true
-	} else if s := pos.Side(face); w.Block(s) == air() {
+	} else if s := pos.Side(face); w.block(s) == air() {
 		w.PlaySound(s.Vec3Centre(), sound.Ignite{})
-		w.SetBlock(s, fire(), nil)
+		w.setBlock(s, fire(), nil)
 		w.ScheduleBlockUpdate(s, time.Duration(30+rand.Intn(10))*time.Second/20)
 		return true
 	}

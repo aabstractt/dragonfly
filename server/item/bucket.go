@@ -78,7 +78,7 @@ func (b Bucket) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (b Bucket) Consume(_ *world.World, c Consumer) Stack {
+func (b Bucket) Consume(w *world.Txn, c Consumer) Stack {
 	for _, effect := range c.Effects() {
 		c.RemoveEffect(effect.Type())
 	}
@@ -99,7 +99,7 @@ func (b Bucket) FuelInfo() FuelInfo {
 }
 
 // UseOnBlock handles the bucket filling and emptying logic.
-func (b Bucket) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, _ User, ctx *UseContext) bool {
+func (b Bucket) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
 	if b.Content.milk {
 		return false
 	}
@@ -107,10 +107,10 @@ func (b Bucket) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.
 		return b.fillFrom(pos, w, ctx)
 	}
 	liq := b.Content.liquid.WithDepth(8, false)
-	if bl := w.Block(pos); canDisplace(bl, liq) || replaceableWith(bl, liq) {
-		w.SetLiquid(pos, liq)
-	} else if bl := w.Block(pos.Side(face)); canDisplace(bl, liq) || replaceableWith(bl, liq) {
-		w.SetLiquid(pos.Side(face), liq)
+	if bl := w.block(pos); canDisplace(bl, liq) || replaceableWith(bl, liq) {
+		w.setLiquid(pos, liq)
+	} else if bl := w.block(pos.Side(face)); canDisplace(bl, liq) || replaceableWith(bl, liq) {
+		w.setLiquid(pos.Side(face), liq)
 	} else {
 		return false
 	}
@@ -125,7 +125,7 @@ func (b Bucket) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.
 // fillFrom fills a bucket from the liquid at the position passed in the world. If there is no liquid or if
 // the liquid is no source, fillFrom returns false.
 func (b Bucket) fillFrom(pos cube.Pos, w *world.World, ctx *UseContext) bool {
-	liquid, ok := w.Liquid(pos)
+	liquid, ok := w.liquid(pos)
 	if !ok {
 		return false
 	}
@@ -133,8 +133,8 @@ func (b Bucket) fillFrom(pos cube.Pos, w *world.World, ctx *UseContext) bool {
 		// Only allow picking up liquid source blocks.
 		return false
 	}
-	w.SetLiquid(pos, nil)
-	w.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: liquid})
+	w.setLiquid(pos, nil)
+	w.playSound(pos.Vec3Centre(), sound.BucketFill{Liquid: liquid})
 
 	ctx.NewItem = NewStack(Bucket{Content: LiquidBucketContent(liquid)}, 1)
 	ctx.NewItemSurvivalOnly = true

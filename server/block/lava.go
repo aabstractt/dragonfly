@@ -26,7 +26,7 @@ type Lava struct {
 }
 
 // neighboursLavaFlammable returns true if one a block adjacent to the passed position is flammable.
-func neighboursLavaFlammable(pos cube.Pos, w *world.World) bool {
+func neighboursLavaFlammable(pos cube.Pos, w *world.Txn) bool {
 	for i := cube.Face(0); i < 6; i++ {
 		if flammable, ok := w.Block(pos.Side(i)).(Flammable); ok && flammable.FlammabilityInfo().LavaFlammable {
 			return true
@@ -36,7 +36,7 @@ func neighboursLavaFlammable(pos cube.Pos, w *world.World) bool {
 }
 
 // EntityInside ...
-func (l Lava) EntityInside(_ cube.Pos, _ *world.World, e world.Entity) {
+func (l Lava) EntityInside(pos cube.Pos, w *world.Txn, e world.Entity) {
 	if fallEntity, ok := e.(fallDistanceEntity); ok {
 		fallEntity.ResetFallDistance()
 	}
@@ -49,7 +49,7 @@ func (l Lava) EntityInside(_ cube.Pos, _ *world.World, e world.Entity) {
 }
 
 // RandomTick ...
-func (l Lava) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
+func (l Lava) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	i := r.Intn(3)
 	if i > 0 {
 		for j := 0; j < i; j++ {
@@ -88,14 +88,14 @@ func (Lava) LightEmissionLevel() uint8 {
 }
 
 // NeighbourUpdateTick ...
-func (l Lava) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (l Lava) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if !l.Harden(pos, w, nil) {
-		w.ScheduleBlockUpdate(pos, w.Dimension().LavaSpreadDuration())
+		w.ScheduleBlockUpdate(pos, w.World().Dimension().LavaSpreadDuration())
 	}
 }
 
 // ScheduledTick ...
-func (l Lava) ScheduledTick(pos cube.Pos, w *world.World, _ *rand.Rand) {
+func (l Lava) ScheduledTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if !l.Harden(pos, w, nil) {
 		tickLiquid(l, pos, w)
 	}
@@ -135,7 +135,7 @@ func (Lava) LiquidType() string {
 }
 
 // Harden handles the hardening logic of lava.
-func (l Lava) Harden(pos cube.Pos, w *world.World, flownIntoBy *cube.Pos) bool {
+func (l Lava) Harden(pos cube.Pos, w *world.Txn, flownIntoBy *cube.Pos) bool {
 	var ok bool
 	var water, b world.Block
 
@@ -160,10 +160,10 @@ func (l Lava) Harden(pos cube.Pos, w *world.World, flownIntoBy *cube.Pos) bool {
 				}
 				b = Cobblestone{}
 			}
-		}, w.Range())
+		}, w.World().Range())
 		if b != nil {
 			ctx := event.C()
-			if w.Handler().HandleLiquidHarden(ctx, pos, l, water, b); ctx.Cancelled() {
+			if w.World().Handler().HandleLiquidHarden(ctx, pos, l, water, b); ctx.Cancelled() {
 				return false
 			}
 			w.PlaySound(pos.Vec3Centre(), sound.Fizz{})
@@ -183,7 +183,7 @@ func (l Lava) Harden(pos cube.Pos, w *world.World, flownIntoBy *cube.Pos) bool {
 		b = Cobblestone{}
 	}
 	ctx := event.C()
-	if w.Handler().HandleLiquidHarden(ctx, pos, l, water, b); ctx.Cancelled() {
+	if w.World().Handler().HandleLiquidHarden(ctx, pos, l, water, b); ctx.Cancelled() {
 		return false
 	}
 	w.SetBlock(pos, b, nil)

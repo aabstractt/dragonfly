@@ -25,7 +25,7 @@ func (h *ItemStackRequestHandler) handleGrindstoneCraft(s *Session) error {
 	if !s.containerOpened.Load() {
 		return fmt.Errorf("no grindstone container opened")
 	}
-	if _, ok := s.c.World().Block(s.openedPos.Load()).(block.Grindstone); !ok {
+	if _, ok := s.c.World().block(s.openedPos.Load()).(block.Grindstone); !ok {
 		return fmt.Errorf("no grindstone container opened")
 	}
 
@@ -61,7 +61,7 @@ func (h *ItemStackRequestHandler) handleGrindstoneCraft(s *Session) error {
 	w := s.c.World()
 	for _, o := range entity.NewExperienceOrbs(entity.EyePosition(s.c), experienceFromEnchantments(resultStack)) {
 		o.SetVelocity(mgl64.Vec3{(rand.Float64()*0.2 - 0.1) * 2, rand.Float64() * 0.4, (rand.Float64()*0.2 - 0.1) * 2})
-		w.AddEntity(o)
+		w.addEntity(o)
 	}
 
 	h.setItemInSlot(protocol.StackRequestSlotInfo{

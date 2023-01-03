@@ -27,7 +27,7 @@ func (p Pumpkin) Instrument() sound.Instrument {
 }
 
 // UseOnBlock ...
-func (p Pumpkin) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (p Pumpkin) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, p)
 	if !used {
 		return

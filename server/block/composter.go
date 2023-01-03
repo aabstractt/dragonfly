@@ -38,13 +38,13 @@ func (c Composter) FlammabilityInfo() FlammabilityInfo {
 }
 
 // SideClosed ...
-func (c Composter) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (c Composter) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
 // BreakInfo ...
 func (c Composter) BreakInfo() BreakInfo {
-	return newBreakInfo(2, alwaysHarvestable, axeEffective, oneOf(c)).withBreakHandler(func(pos cube.Pos, w *world.World, u item.User) {
+	return newBreakInfo(2, alwaysHarvestable, axeEffective, oneOf(c)).withBreakHandler(func(pos cube.Pos, w *world.Txn, u item.User) {
 		if c.Level == 8 {
 			dropItem(w, item.NewStack(item.BoneMeal{}, 1), pos.Side(cube.FaceUp).Vec3Middle())
 		}
@@ -52,7 +52,7 @@ func (c Composter) BreakInfo() BreakInfo {
 }
 
 // Activate ...
-func (c Composter) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.User, ctx *item.UseContext) bool {
+func (c Composter) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	if c.Level >= 7 {
 		if c.Level == 8 {
 			c.Level = 0
@@ -83,7 +83,7 @@ func (c Composter) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.Us
 }
 
 // ScheduledTick ...
-func (c Composter) ScheduledTick(pos cube.Pos, w *world.World, _ *rand.Rand) {
+func (c Composter) ScheduledTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if c.Level == 7 {
 		c.Level = 8
 		w.SetBlock(pos, c, nil)

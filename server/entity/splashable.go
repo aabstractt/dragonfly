@@ -24,7 +24,7 @@ func potionSplash(durMul float64, pot potion.Potion, linger bool) func(e *Ent, r
 			return !living || entity == e
 		}
 		if len(effects) > 0 {
-			for _, otherE := range w.EntitiesWithin(box.GrowVec3(mgl64.Vec3{8.25, 4.25, 8.25}), ignores) {
+			for _, otherE := range w.entitiesWithin(box.GrowVec3(mgl64.Vec3{8.25, 4.25, 8.25}), ignores) {
 				otherPos := otherE.Position()
 				if !otherE.Type().BBox(otherE).Translate(otherPos).IntersectsWith(box.GrowVec3(mgl64.Vec3{4.125, 2.125, 4.125})) {
 					continue
@@ -58,13 +58,13 @@ func potionSplash(durMul float64, pot potion.Potion, linger bool) func(e *Ent, r
 			switch result := res.(type) {
 			case trace.BlockResult:
 				blockPos := result.BlockPosition().Side(result.Face())
-				if w.Block(blockPos) == fire() {
-					w.SetBlock(blockPos, nil, nil)
+				if w.block(blockPos) == fire() {
+					w.setBlock(blockPos, nil, nil)
 				}
 
 				for _, f := range cube.HorizontalFaces() {
-					if h := blockPos.Side(f); w.Block(h) == fire() {
-						w.SetBlock(h, nil, nil)
+					if h := blockPos.Side(f); w.block(h) == fire() {
+						w.setBlock(h, nil, nil)
 					}
 				}
 			case trace.EntityResult:
@@ -72,7 +72,7 @@ func potionSplash(durMul float64, pot potion.Potion, linger bool) func(e *Ent, r
 			}
 		}
 		if linger {
-			w.AddEntity(NewAreaEffectCloud(pos, pot))
+			w.addEntity(NewAreaEffectCloud(pos, pot))
 		}
 	}
 }

@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// Loader implements the loading of the world. A loader can typically be moved around the world to load
-// different parts of the world. An example usage is the player, which uses a loader to load chunks around it
+// Loader implements the loading of the World. A loader can typically be moved around the World to load
+// different parts of the World. An example usage is the player, which uses a loader to load chunks around it
 // so that it can view them.
 type Loader struct {
 	r      int

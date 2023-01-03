@@ -46,12 +46,12 @@ func (c EnderChest) LightEmissionLevel() uint8 {
 }
 
 // SideClosed ...
-func (EnderChest) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (EnderChest) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
 // UseOnBlock ...
-func (c EnderChest) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (c EnderChest) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, c)
 	if !used {
 		return
@@ -65,7 +65,7 @@ func (c EnderChest) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *wo
 }
 
 // Activate ...
-func (c EnderChest) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.User, _ *item.UseContext) bool {
+func (c EnderChest) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(enderChestOwner); ok {
 		opener.OpenBlockContainer(pos)
 		return true
@@ -74,14 +74,14 @@ func (c EnderChest) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.U
 }
 
 // AddViewer ...
-func (c EnderChest) AddViewer(w *world.World, pos cube.Pos) {
+func (c EnderChest) AddViewer(w *world.Txn, pos cube.Pos) {
 	if c.viewers.Inc() == 1 {
 		c.open(w, pos)
 	}
 }
 
 // RemoveViewer ...
-func (c EnderChest) RemoveViewer(w *world.World, pos cube.Pos) {
+func (c EnderChest) RemoveViewer(w *world.Txn, pos cube.Pos) {
 	if c.viewers.Load() == 0 {
 		return
 	}
@@ -91,7 +91,7 @@ func (c EnderChest) RemoveViewer(w *world.World, pos cube.Pos) {
 }
 
 // open opens the ender chest, displaying the animation and playing a sound.
-func (c EnderChest) open(w *world.World, pos cube.Pos) {
+func (c EnderChest) open(w *world.Txn, pos cube.Pos) {
 	for _, v := range w.Viewers(pos.Vec3()) {
 		v.ViewBlockAction(pos, OpenAction{})
 	}
@@ -99,7 +99,7 @@ func (c EnderChest) open(w *world.World, pos cube.Pos) {
 }
 
 // close closes the ender chest, displaying the animation and playing a sound.
-func (c EnderChest) close(w *world.World, pos cube.Pos) {
+func (c EnderChest) close(w *world.Txn, pos cube.Pos) {
 	for _, v := range w.Viewers(pos.Vec3()) {
 		v.ViewBlockAction(pos, CloseAction{})
 	}

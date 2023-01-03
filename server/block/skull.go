@@ -51,7 +51,7 @@ func (s Skull) Model() world.BlockModel {
 }
 
 // UseOnBlock ...
-func (s Skull) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (s Skull) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, face, used = firstReplaceable(w, pos, face, s)
 	if !used || face == cube.FaceDown {
 		return false
@@ -67,7 +67,7 @@ func (s Skull) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.W
 }
 
 // SideClosed ...
-func (Skull) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (Skull) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 

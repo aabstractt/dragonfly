@@ -6,8 +6,8 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// Handler handles events that are called by a world. Implementations of Handler may be used to listen to
-// specific events such as when an entity is added to the world.
+// Handler handles events that are called by a World. Implementations of Handler may be used to listen to
+// specific events such as when an entity is added to the World.
 type Handler interface {
 	// HandleLiquidFlow handles the flowing of a liquid from one block position from into another block
 	// position into. The liquid that will replace the block is also passed. This replaced block might
@@ -35,9 +35,9 @@ type Handler interface {
 	// wood, that can be broken by fire. HandleBlockBurn is often succeeded by HandleFireSpread, when fire spreads to
 	// the position of the original block and the event.Context is not cancelled in HandleBlockBurn.
 	HandleBlockBurn(ctx *event.Context, pos cube.Pos)
-	// HandleEntitySpawn handles an entity being spawned into a World through a call to World.AddEntity.
+	// HandleEntitySpawn handles an entity being spawned into a World through a call to World.addEntity.
 	HandleEntitySpawn(e Entity)
-	// HandleEntityDespawn handles an entity being despawned from a World through a call to World.RemoveEntity.
+	// HandleEntityDespawn handles an entity being despawned from a World through a call to World.removeEntity.
 	HandleEntityDespawn(e Entity)
 	// HandleClose handles the World being closed. HandleClose may be used as a moment to finish code running on other
 	// goroutines that operates on the World specifically. HandleClose is called directly before the World stops

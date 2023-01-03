@@ -24,8 +24,8 @@ func (k Kelp) SmeltInfo() item.SmeltInfo {
 }
 
 // BoneMeal ...
-func (k Kelp) BoneMeal(pos cube.Pos, w *world.World) bool {
-	for y := pos.Y(); y <= w.Range()[1]; y++ {
+func (k Kelp) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+	for y := pos.Y(); y <= w.World().Range()[1]; y++ {
 		currentPos := cube.Pos{pos.X(), y, pos.Z()}
 		block := w.Block(currentPos)
 		if kelp, ok := block.(Kelp); ok {
@@ -64,7 +64,7 @@ func (k Kelp) EncodeBlock() (name string, properties map[string]any) {
 }
 
 // SideClosed will always return false since kelp doesn't close any side.
-func (Kelp) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (Kelp) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
@@ -75,7 +75,7 @@ func (k Kelp) withRandomAge() Kelp {
 }
 
 // UseOnBlock ...
-func (k Kelp) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (k Kelp) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, k)
 	if !used {
 		return
@@ -102,7 +102,7 @@ func (k Kelp) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.Wo
 }
 
 // NeighbourUpdateTick ...
-func (k Kelp) NeighbourUpdateTick(pos, changed cube.Pos, w *world.World) {
+func (k Kelp) NeighbourUpdateTick(pos, changed cube.Pos, w *world.Txn) {
 	if _, ok := w.Liquid(pos); !ok {
 		w.SetBlock(pos, nil, nil)
 		return
@@ -122,7 +122,7 @@ func (k Kelp) NeighbourUpdateTick(pos, changed cube.Pos, w *world.World) {
 }
 
 // RandomTick ...
-func (k Kelp) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
+func (k Kelp) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	// Every random tick, there's a 14% chance for Kelp to grow if its age is below 25.
 	if r.Intn(100) < 15 && k.Age < 25 {
 		abovePos := pos.Side(cube.FaceUp)

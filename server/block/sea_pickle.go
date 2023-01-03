@@ -25,7 +25,7 @@ type SeaPickle struct {
 }
 
 // canSurvive ...
-func (SeaPickle) canSurvive(pos cube.Pos, w *world.World) bool {
+func (SeaPickle) canSurvive(pos cube.Pos, w *world.Txn) bool {
 	below := w.Block(pos.Side(cube.FaceDown))
 	if !below.Model().FaceSolid(pos.Side(cube.FaceDown), cube.FaceUp, w) {
 		return false
@@ -37,7 +37,7 @@ func (SeaPickle) canSurvive(pos cube.Pos, w *world.World) bool {
 }
 
 // BoneMeal ...
-func (s SeaPickle) BoneMeal(pos cube.Pos, w *world.World) bool {
+func (s SeaPickle) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 	if s.Dead {
 		return false
 	}
@@ -74,7 +74,7 @@ func (s SeaPickle) BoneMeal(pos cube.Pos, w *world.World) bool {
 }
 
 // UseOnBlock ...
-func (s SeaPickle) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (s SeaPickle) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	if existing, ok := w.Block(pos).(SeaPickle); ok {
 		if existing.AdditionalCount >= 3 {
 			return false
@@ -104,7 +104,7 @@ func (s SeaPickle) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *wor
 }
 
 // NeighbourUpdateTick ...
-func (s SeaPickle) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (s SeaPickle) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if !s.canSurvive(pos, w) {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: s})
@@ -128,7 +128,7 @@ func (SeaPickle) HasLiquidDrops() bool {
 }
 
 // SideClosed ...
-func (SeaPickle) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (SeaPickle) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 

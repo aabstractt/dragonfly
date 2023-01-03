@@ -64,12 +64,12 @@ func (c Chest) WithName(a ...any) world.Item {
 }
 
 // SideClosed ...
-func (Chest) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (Chest) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
 // open opens the chest, displaying the animation and playing a sound.
-func (c Chest) open(w *world.World, pos cube.Pos) {
+func (c Chest) open(w *world.Txn, pos cube.Pos) {
 	for _, v := range w.Viewers(pos.Vec3()) {
 		v.ViewBlockAction(pos, OpenAction{})
 	}
@@ -77,7 +77,7 @@ func (c Chest) open(w *world.World, pos cube.Pos) {
 }
 
 // close closes the chest, displaying the animation and playing a sound.
-func (c Chest) close(w *world.World, pos cube.Pos) {
+func (c Chest) close(w *world.Txn, pos cube.Pos) {
 	for _, v := range w.Viewers(pos.Vec3()) {
 		v.ViewBlockAction(pos, CloseAction{})
 	}
@@ -85,7 +85,7 @@ func (c Chest) close(w *world.World, pos cube.Pos) {
 }
 
 // AddViewer adds a viewer to the chest, so that it is updated whenever the inventory of the chest is changed.
-func (c Chest) AddViewer(v ContainerViewer, w *world.World, pos cube.Pos) {
+func (c Chest) AddViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
 	c.viewerMu.Lock()
 	defer c.viewerMu.Unlock()
 	if len(c.viewers) == 0 {
@@ -96,7 +96,7 @@ func (c Chest) AddViewer(v ContainerViewer, w *world.World, pos cube.Pos) {
 
 // RemoveViewer removes a viewer from the chest, so that slot updates in the inventory are no longer sent to
 // it.
-func (c Chest) RemoveViewer(v ContainerViewer, w *world.World, pos cube.Pos) {
+func (c Chest) RemoveViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
 	c.viewerMu.Lock()
 	defer c.viewerMu.Unlock()
 	if len(c.viewers) == 0 {
@@ -109,7 +109,7 @@ func (c Chest) RemoveViewer(v ContainerViewer, w *world.World, pos cube.Pos) {
 }
 
 // Activate ...
-func (c Chest) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.User, _ *item.UseContext) bool {
+func (c Chest) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		if d, ok := w.Block(pos.Side(cube.FaceUp)).(LightDiffuser); ok && d.LightDiffusionLevel() == 0 {
 			opener.OpenBlockContainer(pos)
@@ -120,7 +120,7 @@ func (c Chest) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.User, 
 }
 
 // UseOnBlock ...
-func (c Chest) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (c Chest) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, c)
 	if !used {
 		return

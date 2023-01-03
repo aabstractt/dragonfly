@@ -60,7 +60,7 @@ func (it *Item) SetPickupDelay(d time.Duration) {
 }
 
 // Tick ticks the entity, performing movement.
-func (it *Item) Tick(w *world.World, current int64) {
+func (it *Item) Tick(w *world.Txn, current int64) {
 	it.mu.Lock()
 	m := it.c.TickMovement(it, it.pos, it.vel, 0, 0)
 	it.pos, it.vel = m.pos, m.vel
@@ -90,7 +90,7 @@ func (it *Item) Tick(w *world.World, current int64) {
 func (it *Item) checkNearby(w *world.World, pos mgl64.Vec3) {
 	bbox := it.Type().BBox(it)
 	grown := bbox.GrowVec3(mgl64.Vec3{1, 0.5, 1}).Translate(pos)
-	for _, e := range w.EntitiesWithin(bbox.Translate(pos).Grow(2), nil) {
+	for _, e := range w.entitiesWithin(bbox.Translate(pos).Grow(2), nil) {
 		if e == it {
 			// Skip the item entity itself.
 			continue
@@ -124,12 +124,12 @@ func (it *Item) merge(w *world.World, other *Item, pos mgl64.Vec3) bool {
 
 	newA := NewItem(a, other.Position())
 	newA.SetVelocity(other.Velocity())
-	w.AddEntity(newA)
+	w.addEntity(newA)
 
 	if !b.Empty() {
 		newB := NewItem(b, pos)
 		newB.SetVelocity(it.vel)
-		w.AddEntity(newB)
+		w.addEntity(newB)
 	}
 	_ = it.Close()
 	_ = other.Close()
@@ -152,7 +152,7 @@ func (it *Item) collect(w *world.World, collector Collector, pos mgl64.Vec3) {
 		return
 	}
 	// Create a new item entity and shrink it by the amount of items that the collector collected.
-	w.AddEntity(NewItem(it.i.Grow(-n), pos))
+	w.addEntity(NewItem(it.i.Grow(-n), pos))
 
 	_ = it.Close()
 }

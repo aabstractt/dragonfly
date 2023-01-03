@@ -63,11 +63,11 @@ type breakable interface {
 
 // landable ...
 type landable interface {
-	Landed(w *world.World, pos cube.Pos)
+	Landed(w *world.Txn, pos cube.Pos)
 }
 
 // Tick ...
-func (f *FallingBlock) Tick(w *world.World, _ int64) {
+func (f *FallingBlock) Tick(w *world.Txn, current int64) {
 	f.mu.Lock()
 	m := f.c.TickMovement(f, f.pos, f.vel, 0, 0)
 	f.pos, f.vel = m.pos, m.vel
@@ -105,9 +105,9 @@ func (f *FallingBlock) Tick(w *world.World, _ int64) {
 			l.Landed(w, pos)
 		}
 
-		b := w.Block(pos)
+		b := w.block(pos)
 		if r, ok := b.(replaceable); ok && r.ReplaceableBy(f.block) {
-			w.SetBlock(pos, f.block, nil)
+			w.setBlock(pos, f.block, nil)
 		} else {
 			if i, ok := f.block.(world.Item); ok {
 				w.AddEntity(NewItem(item.NewStack(i, 1), pos.Vec3Middle()))
@@ -134,7 +134,7 @@ func (f *FallingBlock) ignores(entity world.Entity) bool {
 type Solidifiable interface {
 	// Solidifies returns whether the falling block can solidify at the position it is currently in. If so,
 	// the block will immediately stop falling.
-	Solidifies(pos cube.Pos, w *world.World) bool
+	Solidifies(pos cube.Pos, w *world.Txn) bool
 }
 
 type replaceable interface {

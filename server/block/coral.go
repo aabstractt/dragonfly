@@ -24,7 +24,7 @@ type Coral struct {
 }
 
 // UseOnBlock ...
-func (c Coral) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (c Coral) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, c)
 	if !used {
 		return false
@@ -50,12 +50,12 @@ func (c Coral) HasLiquidDrops() bool {
 }
 
 // SideClosed ...
-func (c Coral) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (c Coral) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
 // NeighbourUpdateTick ...
-func (c Coral) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (c Coral) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if !w.Block(pos.Side(cube.FaceDown)).Model().FaceSolid(pos.Side(cube.FaceDown), cube.FaceUp, w) {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: c})
@@ -68,7 +68,7 @@ func (c Coral) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
 }
 
 // ScheduledTick ...
-func (c Coral) ScheduledTick(pos cube.Pos, w *world.World, _ *rand.Rand) {
+func (c Coral) ScheduledTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if c.Dead {
 		return
 	}
@@ -80,7 +80,7 @@ func (c Coral) ScheduledTick(pos cube.Pos, w *world.World, _ *rand.Rand) {
 				adjacentWater = true
 			}
 		}
-	}, w.Range())
+	}, w.World().Range())
 	if !adjacentWater {
 		c.Dead = true
 		w.SetBlock(pos, c, nil)

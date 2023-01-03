@@ -76,7 +76,7 @@ type experienceCollector interface {
 var followBox = cube.Box(-8, -8, -8, 8, 8, 8)
 
 // Tick ...
-func (e *ExperienceOrb) Tick(w *world.World, current int64) {
+func (e *ExperienceOrb) Tick(w *world.Txn, current int64) {
 	e.mu.Lock()
 	m := e.c.TickMovement(e, e.pos, e.vel, 0, 0)
 	e.pos, e.vel = m.pos, m.vel

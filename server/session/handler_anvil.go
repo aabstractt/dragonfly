@@ -26,7 +26,7 @@ func (h *ItemStackRequestHandler) handleCraftRecipeOptional(a *protocol.CraftRec
 
 	w := s.c.World()
 	pos := s.openedPos.Load()
-	anvil, ok := w.Block(pos).(block.Anvil)
+	anvil, ok := w.block(pos).(block.Anvil)
 	if !ok {
 		return fmt.Errorf("no anvil container opened")
 	}
@@ -140,13 +140,13 @@ func (h *ItemStackRequestHandler) handleCraftRecipeOptional(a *protocol.CraftRec
 	if !c && rand.Float64() < 0.12 {
 		damaged := anvil.Break()
 		if _, ok := damaged.(block.Air); ok {
-			w.PlaySound(pos.Vec3Centre(), sound.AnvilBreak{})
+			w.playSound(pos.Vec3Centre(), sound.AnvilBreak{})
 		} else {
-			w.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
+			w.playSound(pos.Vec3Centre(), sound.AnvilUse{})
 		}
-		defer w.SetBlock(pos, damaged, nil)
+		defer w.setBlock(pos, damaged, nil)
 	} else {
-		w.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
+		w.playSound(pos.Vec3Centre(), sound.AnvilUse{})
 	}
 
 	h.setItemInSlot(protocol.StackRequestSlotInfo{

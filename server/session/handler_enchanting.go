@@ -269,22 +269,22 @@ func searchBookshelves(w *world.World, pos cube.Pos) (shelves int) {
 					// Ignore the center block.
 					continue
 				}
-				if _, ok := w.Block(pos.Add(cube.Pos{x, y, z})).(block.Air); !ok {
+				if _, ok := w.block(pos.Add(cube.Pos{x, y, z})).(block.Air); !ok {
 					// There must be a one block space between the bookshelf and the player.
 					continue
 				}
 
 				// Check for a bookshelf two blocks away.
-				if _, ok := w.Block(pos.Add(cube.Pos{x * 2, y, z * 2})).(block.Bookshelf); ok {
+				if _, ok := w.block(pos.Add(cube.Pos{x * 2, y, z * 2})).(block.Bookshelf); ok {
 					shelves++
 				}
 				if x != 0 && z != 0 {
 					// Check for a bookshelf two blocks away on the X axis.
-					if _, ok := w.Block(pos.Add(cube.Pos{x * 2, y, z})).(block.Bookshelf); ok {
+					if _, ok := w.block(pos.Add(cube.Pos{x * 2, y, z})).(block.Bookshelf); ok {
 						shelves++
 					}
 					// Check for a bookshelf two blocks away on the Z axis.
-					if _, ok := w.Block(pos.Add(cube.Pos{x, y, z * 2})).(block.Bookshelf); ok {
+					if _, ok := w.block(pos.Add(cube.Pos{x, y, z * 2})).(block.Bookshelf); ok {
 						shelves++
 					}
 				}

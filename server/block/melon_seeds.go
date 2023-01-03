@@ -24,7 +24,7 @@ func (MelonSeeds) SameCrop(c Crop) bool {
 }
 
 // NeighbourUpdateTick ...
-func (m MelonSeeds) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (m MelonSeeds) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if _, ok := w.Block(pos.Side(cube.FaceDown)).(Farmland); !ok {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: m})
@@ -37,7 +37,7 @@ func (m MelonSeeds) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
 }
 
 // RandomTick ...
-func (m MelonSeeds) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
+func (m MelonSeeds) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if r.Float64() <= m.CalculateGrowthChance(pos, w) && w.Light(pos) >= 8 {
 		if m.Growth < 7 {
 			m.Growth++
@@ -64,7 +64,7 @@ func (m MelonSeeds) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
 }
 
 // BoneMeal ...
-func (m MelonSeeds) BoneMeal(pos cube.Pos, w *world.World) bool {
+func (m MelonSeeds) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 	if m.Growth == 7 {
 		return false
 	}
@@ -74,7 +74,7 @@ func (m MelonSeeds) BoneMeal(pos cube.Pos, w *world.World) bool {
 }
 
 // UseOnBlock ...
-func (m MelonSeeds) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (m MelonSeeds) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, m)
 	if !used {
 		return false

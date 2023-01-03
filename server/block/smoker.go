@@ -34,7 +34,7 @@ func NewSmoker(face cube.Face) Smoker {
 }
 
 // Tick is called to check if the smoker should update and start or stop smelting.
-func (s Smoker) Tick(_ int64, pos cube.Pos, w *world.World) {
+func (s Smoker) Tick(currentTick int64, pos cube.Pos, w *world.Txn) {
 	if s.Lit && rand.Float64() <= 0.016 { // Every three or so seconds.
 		w.PlaySound(pos.Vec3Centre(), sound.SmokerCrackle{})
 	}
@@ -60,7 +60,7 @@ func (s Smoker) EncodeBlock() (name string, properties map[string]interface{}) {
 }
 
 // UseOnBlock ...
-func (s Smoker) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (s Smoker) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, s)
 	if !used {
 		return false
@@ -77,7 +77,7 @@ func (s Smoker) BreakInfo() BreakInfo {
 }
 
 // Activate ...
-func (s Smoker) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.User, _ *item.UseContext) bool {
+func (s Smoker) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		opener.OpenBlockContainer(pos)
 		return true

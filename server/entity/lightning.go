@@ -62,7 +62,7 @@ func (li *Lightning) World() *world.World {
 
 // Close closes the lighting.
 func (li *Lightning) Close() error {
-	li.World().RemoveEntity(li)
+	li.World().removeEntity(li)
 	return nil
 }
 
@@ -72,7 +72,7 @@ func (li *Lightning) Rotation() (c cube.Rotation) {
 }
 
 // Tick ...
-func (li *Lightning) Tick(w *world.World, _ int64) {
+func (li *Lightning) Tick(w *world.Txn, current int64) {
 	f := fire().(interface {
 		Start(w *world.World, pos cube.Pos)
 	})

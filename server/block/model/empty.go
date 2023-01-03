@@ -9,11 +9,11 @@ import (
 type Empty struct{}
 
 // BBox returns an empty slice.
-func (Empty) BBox(cube.Pos, *world.World) []cube.BBox {
+func (Empty) BBox(cube.Pos, *world.Txn) []cube.BBox {
 	return nil
 }
 
 // FaceSolid always returns false.
-func (Empty) FaceSolid(cube.Pos, cube.Face, *world.World) bool {
+func (Empty) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
 	return false
 }

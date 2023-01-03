@@ -21,7 +21,7 @@ func (WheatSeeds) SameCrop(c Crop) bool {
 }
 
 // BoneMeal ...
-func (s WheatSeeds) BoneMeal(pos cube.Pos, w *world.World) bool {
+func (s WheatSeeds) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 	if s.Growth == 7 {
 		return false
 	}
@@ -31,7 +31,7 @@ func (s WheatSeeds) BoneMeal(pos cube.Pos, w *world.World) bool {
 }
 
 // UseOnBlock ...
-func (s WheatSeeds) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (s WheatSeeds) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, s)
 	if !used {
 		return false
@@ -66,7 +66,7 @@ func (s WheatSeeds) EncodeItem() (name string, meta int16) {
 }
 
 // RandomTick ...
-func (s WheatSeeds) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
+func (s WheatSeeds) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if w.Light(pos) < 8 {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: s})

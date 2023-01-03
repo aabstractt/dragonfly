@@ -31,7 +31,7 @@ func (a Anvil) BreakInfo() BreakInfo {
 }
 
 // Activate ...
-func (Anvil) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.User, _ *item.UseContext) bool {
+func (Anvil) Activate(pos cube.Pos, _ cube.Face, _ *world.Txn, u item.User, _ *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		opener.OpenBlockContainer(pos)
 		return true
@@ -40,7 +40,7 @@ func (Anvil) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.User, _ 
 }
 
 // UseOnBlock ...
-func (a Anvil) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (a Anvil) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, a)
 	if !used {
 		return
@@ -51,7 +51,7 @@ func (a Anvil) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.W
 }
 
 // NeighbourUpdateTick ...
-func (a Anvil) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (a Anvil) NeighbourUpdateTick(pos, _ cube.Pos, w *world.Txn) {
 	a.fall(a, pos, w)
 }
 
@@ -75,7 +75,7 @@ func (a Anvil) Break() world.Block {
 }
 
 // Landed is called when a falling anvil hits the ground, used to, for example, play a sound.
-func (Anvil) Landed(w *world.World, pos cube.Pos) {
+func (Anvil) Landed(w *world.Txn, pos cube.Pos) {
 	w.PlaySound(pos.Vec3Centre(), sound.AnvilLand{})
 }
 

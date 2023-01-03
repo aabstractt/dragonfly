@@ -30,7 +30,7 @@ func (j Jukebox) BreakInfo() BreakInfo {
 	if !j.Item.Empty() {
 		d = append(d, j.Item)
 	}
-	return newBreakInfo(0.8, alwaysHarvestable, axeEffective, simpleDrops(d...)).withBreakHandler(func(pos cube.Pos, w *world.World, u item.User) {
+	return newBreakInfo(0.8, alwaysHarvestable, axeEffective, simpleDrops(d...)).withBreakHandler(func(pos cube.Pos, w *world.Txn, u item.User) {
 		if _, hasDisc := j.Disc(); hasDisc {
 			w.PlaySound(pos.Vec3(), sound.MusicDiscEnd{})
 		}
@@ -45,7 +45,7 @@ type jukeboxUser interface {
 }
 
 // Activate ...
-func (j Jukebox) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.User, ctx *item.UseContext) bool {
+func (j Jukebox) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	if _, hasDisc := j.Disc(); hasDisc {
 		dropItem(w, j.Item, pos.Side(cube.FaceUp).Vec3Middle())
 

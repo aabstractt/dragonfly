@@ -1,7 +1,7 @@
 package world
 
-// Difficulty represents the difficulty of a Minecraft world. The difficulty of a world influences all kinds
-// of aspects of the world, such as the damage enemies deal to players, the way hunger depletes, whether
+// Difficulty represents the difficulty of a Minecraft World. The difficulty of a World influences all kinds
+// of aspects of the World, such as the damage enemies deal to players, the way hunger depletes, whether
 // hostile monsters spawn or not and more.
 type Difficulty interface {
 	// FoodRegenerates specifies if players' food levels should automatically regenerate with this difficulty.

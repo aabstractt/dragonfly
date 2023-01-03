@@ -9,7 +9,7 @@ import (
 	"math/rand"
 )
 
-// Block is a block that may be placed or found in a world. In addition, the block may also be added to an
+// Block is a block that may be placed or found in a World. In addition, the block may also be added to an
 // inventory: It is also an item.
 // Every Block implementation must be able to be hashed as key in a map.
 type Block interface {
@@ -25,7 +25,7 @@ type Block interface {
 	Model() BlockModel
 }
 
-// Liquid represents a block that can be moved through and which can flow in the world after placement. There
+// Liquid represents a block that can be moved through and which can flow in the World after placement. There
 // are two liquids in vanilla, which are lava and water.
 type Liquid interface {
 	Block
@@ -46,7 +46,7 @@ type Liquid interface {
 	LiquidType() string
 	// Harden checks if the block should harden when looking at the surrounding blocks and sets the position
 	// to the hardened block when adequate. If the block was hardened, the method returns true.
-	Harden(pos cube.Pos, w *World, flownIntoBy *cube.Pos) bool
+	Harden(pos cube.Pos, w *Txn, flownIntoBy *cube.Pos) bool
 }
 
 // hashes holds a list of runtime IDs indexed by the hash of the Block that implements the blocks pointed to by those
@@ -152,7 +152,7 @@ func air() Block {
 type RandomTicker interface {
 	// RandomTick handles a random tick of the block at the position passed. Additionally, a rand.Rand
 	// instance is passed which may be used to generate values randomly without locking.
-	RandomTick(pos cube.Pos, w *World, r *rand.Rand)
+	RandomTick(pos cube.Pos, w *Txn, r *rand.Rand)
 }
 
 // ScheduledTicker represents a block that executes an action when it has a block update scheduled, such as
@@ -161,14 +161,14 @@ type ScheduledTicker interface {
 	// ScheduledTick handles a scheduled tick initiated by an event in one of the neighbouring blocks, such as
 	// when a block is placed or broken. Additionally, a rand.Rand instance is passed which may be used to
 	// generate values randomly without locking.
-	ScheduledTick(pos cube.Pos, w *World, r *rand.Rand)
+	ScheduledTick(pos cube.Pos, w *Txn, r *rand.Rand)
 }
 
-// TickerBlock is an implementation of NBTer with an additional Tick method that is called on every world
+// TickerBlock is an implementation of NBTer with an additional Tick method that is called on every World
 // tick for loaded blocks that implement this interface.
 type TickerBlock interface {
 	NBTer
-	Tick(currentTick int64, pos cube.Pos, w *World)
+	Tick(currentTick int64, pos cube.Pos, w *Txn)
 }
 
 // NeighbourUpdateTicker represents a block that is updated when a block adjacent to it is updated, either
@@ -176,7 +176,7 @@ type TickerBlock interface {
 type NeighbourUpdateTicker interface {
 	// NeighbourUpdateTick handles a neighbouring block being updated. The position of that block and the
 	// position of this block is passed.
-	NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *World)
+	NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *Txn)
 }
 
 // NBTer represents either an item or a block which may decode NBT data and encode to NBT data. Typically,
@@ -189,15 +189,15 @@ type NBTer interface {
 	EncodeNBT() map[string]any
 }
 
-// LiquidDisplacer represents a block that is able to displace a liquid to a different world layer, without
+// LiquidDisplacer represents a block that is able to displace a liquid to a different World layer, without
 // fully removing the liquid.
 type LiquidDisplacer interface {
 	// CanDisplace specifies if the block is able to displace the liquid passed.
 	CanDisplace(b Liquid) bool
-	// SideClosed checks if a position on the side of the block placed in the world at a specific position is
+	// SideClosed checks if a position on the side of the block placed in the World at a specific position is
 	// closed. When this returns true (for example, when the side is below the position and the block is a
 	// slab), liquid inside the displacer won't flow from pos into side.
-	SideClosed(pos, side cube.Pos, w *World) bool
+	SideClosed(pos, side cube.Pos, w *Txn) bool
 }
 
 // lightEmitter is identical to a block.LightEmitter.
@@ -226,7 +226,7 @@ func replaceable(w *World, c *chunkData, pos cube.Pos, with Block) bool {
 }
 
 // BlockAction represents an action that may be performed by a block. Typically, these actions are sent to
-// viewers in a world so that they can see these actions.
+// viewers in a World so that they can see these actions.
 type BlockAction interface {
 	BlockAction()
 }

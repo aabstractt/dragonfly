@@ -17,7 +17,7 @@ type Config struct {
 	// set here influences, among others, the sky colour, weather/time and liquid behaviour in that World.
 	Dim Dimension
 	// PortalDestination is a function that returns the destination World for a portal of a specific Dimension type. If
-	// set to nil, no portals will function. If the function returns a nil world for a Dimension, only portals of that
+	// set to nil, no portals will function. If the function returns a nil World for a Dimension, only portals of that
 	// specific Dimension type will not function.
 	PortalDestination func(dim Dimension) *World
 	// Provider is the Provider implementation used to read and write World data. If set to nil, the Provider used will
@@ -82,10 +82,12 @@ func (conf Config) New() *World {
 		conf:             conf,
 		ra:               conf.Dim.Range(),
 		set:              s,
+		q:                make(chan QueryFunc),
 	}
-	w.weather, w.ticker = weather{w: w}, ticker{w: w}
+	w.weather = weather{w: w}
 
-	go w.tickLoop()
+	go tickLoop(w)
 	go w.chunkCacheJanitor()
+	go w.run()
 	return w
 }

@@ -10,7 +10,7 @@ import (
 type EnderPearl struct{}
 
 // Use ...
-func (e EnderPearl) Use(w *world.World, user User, ctx *UseContext) bool {
+func (e EnderPearl) Use(w *world.Txn, user User, ctx *UseContext) bool {
 	create := w.EntityRegistry().Config().EnderPearl
 	w.AddEntity(create(eyePosition(user), user.Rotation().Vec3().Mul(1.5), user))
 	w.PlaySound(user.Position(), sound.ItemThrow{})

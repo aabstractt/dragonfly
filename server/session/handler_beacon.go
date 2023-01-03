@@ -23,7 +23,7 @@ func (h *ItemStackRequestHandler) handleBeaconPayment(a *protocol.BeaconPaymentS
 		return fmt.Errorf("no beacon container opened")
 	}
 	pos := s.openedPos.Load()
-	beacon, ok := s.c.World().Block(pos).(block.Beacon)
+	beacon, ok := s.c.World().block(pos).(block.Beacon)
 	if !ok {
 		return fmt.Errorf("no beacon container opened")
 	}
@@ -49,7 +49,7 @@ func (h *ItemStackRequestHandler) handleBeaconPayment(a *protocol.BeaconPaymentS
 	if sOk {
 		beacon.Secondary = secondary.(effect.LastingType)
 	}
-	s.c.World().SetBlock(pos, beacon, nil)
+	s.c.World().setBlock(pos, beacon, nil)
 
 	// The client will send a Destroy action after this action, but we can't rely on that because the client
 	// could just not send it.

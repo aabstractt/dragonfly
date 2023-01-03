@@ -18,7 +18,7 @@ type Stair struct {
 
 // BBox returns a slice of physics.BBox depending on if the Stair is upside down and which direction it is facing.
 // Additionally, these BBoxs depend on the Stair blocks surrounding this one, which can influence the model.
-func (s Stair) BBox(pos cube.Pos, w *world.World) []cube.BBox {
+func (s Stair) BBox(pos cube.Pos, w *world.Txn) []cube.BBox {
 	b := []cube.BBox{cube.Box(0, 0, 0, 1, 0.5, 1)}
 	if s.UpsideDown {
 		b[0] = cube.Box(0, 0.5, 0, 1, 1, 1)
@@ -57,7 +57,7 @@ func (s Stair) BBox(pos cube.Pos, w *world.World) []cube.BBox {
 }
 
 // FaceSolid returns true for all faces of the Stair that are completely filled.
-func (s Stair) FaceSolid(pos cube.Pos, face cube.Face, w *world.World) bool {
+func (s Stair) FaceSolid(pos cube.Pos, face cube.Face, w *world.Txn) bool {
 	if !s.UpsideDown && face == cube.FaceDown {
 		// Non-upside-down stairs have a closed side at the bottom.
 		return true

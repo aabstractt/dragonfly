@@ -15,7 +15,7 @@ type MossCarpet struct {
 }
 
 // SideClosed ...
-func (MossCarpet) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (MossCarpet) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
@@ -25,14 +25,14 @@ func (MossCarpet) HasLiquidDrops() bool {
 }
 
 // NeighbourUpdateTick ...
-func (MossCarpet) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (MossCarpet) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if _, ok := w.Block(pos.Side(cube.FaceDown)).(Air); ok {
 		w.SetBlock(pos, nil, nil)
 	}
 }
 
 // UseOnBlock ...
-func (m MossCarpet) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (m MossCarpet) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, m)
 	if !used {
 		return

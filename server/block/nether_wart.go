@@ -23,7 +23,7 @@ func (n NetherWart) HasLiquidDrops() bool {
 }
 
 // RandomTick ...
-func (n NetherWart) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
+func (n NetherWart) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if n.Age < 3 && r.Float64() < 0.1 {
 		n.Age++
 		w.SetBlock(pos, n, nil)
@@ -31,7 +31,7 @@ func (n NetherWart) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
 }
 
 // UseOnBlock ...
-func (n NetherWart) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (n NetherWart) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, n)
 	if !used {
 		return false
@@ -45,7 +45,7 @@ func (n NetherWart) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *wo
 }
 
 // NeighbourUpdateTick ...
-func (n NetherWart) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (n NetherWart) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if _, ok := w.Block(pos.Side(cube.FaceDown)).(SoulSand); !ok {
 		w.SetBlock(pos, nil, nil)
 	}

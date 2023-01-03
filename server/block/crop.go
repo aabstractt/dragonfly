@@ -24,7 +24,7 @@ type crop struct {
 }
 
 // NeighbourUpdateTick ...
-func (c crop) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (c crop) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if _, ok := w.Block(pos.Side(cube.FaceDown)).(Farmland); !ok {
 		b := w.Block(pos)
 		w.SetBlock(pos, nil, nil)
@@ -47,7 +47,7 @@ func (c crop) GrowthStage() int {
 }
 
 // CalculateGrowthChance calculates the chance the crop will grow during a random tick.
-func (c crop) CalculateGrowthChance(pos cube.Pos, w *world.World) float64 {
+func (c crop) CalculateGrowthChance(pos cube.Pos, w *world.Txn) float64 {
 	points := 0.0
 
 	block := w.Block(pos)

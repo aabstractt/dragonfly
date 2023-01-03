@@ -21,7 +21,7 @@ func (BeetrootSeeds) SameCrop(c Crop) bool {
 }
 
 // BoneMeal ...
-func (b BeetrootSeeds) BoneMeal(pos cube.Pos, w *world.World) bool {
+func (b BeetrootSeeds) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 	if b.Growth == 7 {
 		return false
 	}
@@ -34,7 +34,7 @@ func (b BeetrootSeeds) BoneMeal(pos cube.Pos, w *world.World) bool {
 }
 
 // UseOnBlock ...
-func (b BeetrootSeeds) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (b BeetrootSeeds) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, b)
 	if !used {
 		return false
@@ -69,7 +69,7 @@ func (b BeetrootSeeds) EncodeItem() (name string, meta int16) {
 }
 
 // RandomTick ...
-func (b BeetrootSeeds) RandomTick(pos cube.Pos, w *world.World, r *rand.Rand) {
+func (b BeetrootSeeds) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if w.Light(pos) < 8 {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})

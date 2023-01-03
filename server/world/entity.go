@@ -8,22 +8,22 @@ import (
 	"time"
 )
 
-// Entity represents an entity in the world, typically an object that may be moved around and can be
+// Entity represents an entity in the World, typically an object that may be moved around and can be
 // interacted with by other entities.
-// Viewers of a world may view an entity when near it.
+// Viewers of a World may view an entity when near it.
 type Entity interface {
 	io.Closer
 
 	// Type returns the EntityType of the Entity.
 	Type() EntityType
 
-	// Position returns the current position of the entity in the world.
+	// Position returns the current position of the entity in the World.
 	Position() mgl64.Vec3
 	// Rotation returns the yaw and pitch of the entity in degrees. Yaw is horizontal rotation (rotation around the
 	// vertical axis, 0 when facing forward), pitch is vertical rotation (rotation around the horizontal axis, also 0
 	// when facing forward).
 	Rotation() cube.Rotation
-	// World returns the current world of the entity. This is always the world that the entity can actually be
+	// World returns the current World of the entity. This is always the World that the entity can actually be
 	// found in.
 	World() *World
 }
@@ -56,11 +56,11 @@ type SaveableEntityType interface {
 type TickerEntity interface {
 	Entity
 	// Tick ticks the entity with the current World and tick passed.
-	Tick(w *World, current int64)
+	Tick(w *Txn, current int64)
 }
 
 // EntityAction represents an action that may be performed by an entity. Typically, these actions are sent to
-// viewers in a world so that they can see these actions.
+// viewers in a World so that they can see these actions.
 type EntityAction interface {
 	EntityAction()
 }

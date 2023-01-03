@@ -46,7 +46,7 @@ func (WoodFenceGate) FuelInfo() item.FuelInfo {
 }
 
 // UseOnBlock ...
-func (f WoodFenceGate) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (f WoodFenceGate) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, f)
 	if !used {
 		return false
@@ -59,7 +59,7 @@ func (f WoodFenceGate) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w 
 }
 
 // NeighbourUpdateTick ...
-func (f WoodFenceGate) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (f WoodFenceGate) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if f.shouldBeLowered(pos, w) != f.Lowered {
 		f.Lowered = !f.Lowered
 		w.SetBlock(pos, f, nil)
@@ -67,7 +67,7 @@ func (f WoodFenceGate) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
 }
 
 // shouldBeLowered returns if the fence gate should be lowered or not, based on the neighbouring walls.
-func (f WoodFenceGate) shouldBeLowered(pos cube.Pos, w *world.World) bool {
+func (f WoodFenceGate) shouldBeLowered(pos cube.Pos, w *world.Txn) bool {
 	leftSide := f.Facing.RotateLeft().Face()
 	_, left := w.Block(pos.Side(leftSide)).(Wall)
 	_, right := w.Block(pos.Side(leftSide.Opposite())).(Wall)
@@ -75,7 +75,7 @@ func (f WoodFenceGate) shouldBeLowered(pos cube.Pos, w *world.World) bool {
 }
 
 // Activate ...
-func (f WoodFenceGate) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.User, _ *item.UseContext) bool {
+func (f WoodFenceGate) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	f.Open = !f.Open
 	if f.Open && f.Facing.Opposite() == u.Rotation().Direction() {
 		f.Facing = f.Facing.Opposite()
@@ -86,7 +86,7 @@ func (f WoodFenceGate) Activate(pos cube.Pos, _ cube.Face, w *world.World, u ite
 }
 
 // SideClosed ...
-func (f WoodFenceGate) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (f WoodFenceGate) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 

@@ -213,7 +213,7 @@ func (s *Session) Spawn(c Controllable, pos mgl64.Vec3, w *world.World, gm world
 
 // Start makes the session start handling incoming packets from the client.
 func (s *Session) Start() {
-	s.c.World().AddEntity(s.c)
+	s.c.World().addEntity(s.c)
 	go s.handlePackets()
 }
 
@@ -251,7 +251,7 @@ func (s *Session) close() {
 
 	s.closeCurrentContainer()
 	_ = s.chunkLoader.Close()
-	s.c.World().RemoveEntity(s.c)
+	s.c.World().removeEntity(s.c)
 
 	// This should always be called last due to the timing of the removal of entity runtime IDs.
 	s.closePlayerList()
@@ -470,7 +470,7 @@ func (s *Session) registerHandlers() {
 func (s *Session) handleInterfaceUpdate(slot int, _, item item.Stack) {
 	if slot == enchantingInputSlot && s.containerOpened.Load() {
 		pos := s.openedPos.Load()
-		b := s.c.World().Block(pos)
+		b := s.c.World().block(pos)
 		if _, enchanting := b.(block.EnchantingTable); enchanting {
 			s.sendEnchantmentOptions(s.c.World(), pos, item)
 		}

@@ -43,7 +43,7 @@ func (t WoodTrapdoor) Model() world.BlockModel {
 
 // UseOnBlock handles the directional placing of trapdoors and makes sure they are properly placed upside down
 // when needed.
-func (t WoodTrapdoor) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (t WoodTrapdoor) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, face, used := firstReplaceable(w, pos, face, t)
 	if !used {
 		return false
@@ -56,7 +56,7 @@ func (t WoodTrapdoor) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Ve
 }
 
 // Activate ...
-func (t WoodTrapdoor) Activate(pos cube.Pos, _ cube.Face, w *world.World, _ item.User, _ *item.UseContext) bool {
+func (t WoodTrapdoor) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	t.Open = !t.Open
 	w.SetBlock(pos, t, nil)
 	w.PlaySound(pos.Vec3Centre(), sound.Door{})
@@ -74,7 +74,7 @@ func (WoodTrapdoor) FuelInfo() item.FuelInfo {
 }
 
 // SideClosed ...
-func (t WoodTrapdoor) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (t WoodTrapdoor) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 

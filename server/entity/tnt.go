@@ -57,7 +57,7 @@ func (t *TNT) Explode(explosionPos mgl64.Vec3, impact float64, _ block.Explosion
 }
 
 // Tick ticks the entity, performing movement.
-func (t *TNT) Tick(w *world.World, _ int64) {
+func (t *TNT) Tick(w *world.Txn, current int64) {
 	t.mu.Lock()
 	m := t.c.TickMovement(t, t.pos, t.vel, 0, 0)
 	t.pos, t.vel = m.pos, m.vel

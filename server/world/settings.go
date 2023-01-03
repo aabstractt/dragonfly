@@ -14,7 +14,7 @@ type Settings struct {
 
 	// Name is the display name of the World.
 	Name string
-	// Spawn is the spawn position of the World. New players that join the world will be spawned here.
+	// Spawn is the spawn position of the World. New players that join the World will be spawned here.
 	Spawn cube.Pos
 	// Time is the current time of the World. It advances every tick if TimeCycle is set to true.
 	Time int64
@@ -28,17 +28,17 @@ type Settings struct {
 	ThunderTime int64
 	// Thunder is the current thunder level of the World.
 	Thundering bool
-	// WeatherCycle specifies if weather should be enabled in this world. If set to false, weather will be disabled.
+	// WeatherCycle specifies if weather should be enabled in this World. If set to false, weather will be disabled.
 	WeatherCycle bool
-	// CurrentTick is the current tick of the world. This is similar to the Time, except that it has no visible effect
+	// CurrentTick is the current tick of the World. This is similar to the Time, except that it has no visible effect
 	// to the client. It can also not be changed through commands and will only ever go up.
 	CurrentTick int64
 	// DefaultGameMode is the GameMode assigned to players that join the World for the first time.
 	DefaultGameMode GameMode
 	// Difficulty is the difficulty of the World. Behaviour of hunger, regeneration and monsters differs based on the
-	// difficulty of the world.
+	// difficulty of the World.
 	Difficulty Difficulty
-	// TickRange is the radius in chunks around a Viewer that has its blocks and entities ticked when the world is
+	// TickRange is the radius in chunks around a Viewer that has its blocks and entities ticked when the World is
 	// ticked. If set to 0, blocks and entities will never be ticked.
 	TickRange int32
 }

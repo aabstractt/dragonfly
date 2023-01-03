@@ -23,7 +23,7 @@ func (c Carpet) FlammabilityInfo() FlammabilityInfo {
 }
 
 // SideClosed ...
-func (Carpet) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (Carpet) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
@@ -48,7 +48,7 @@ func (Carpet) HasLiquidDrops() bool {
 }
 
 // NeighbourUpdateTick ...
-func (c Carpet) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (c Carpet) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if _, ok := w.Block(pos.Side(cube.FaceDown)).(Air); ok {
 		w.SetBlock(pos, nil, nil)
 		dropItem(w, item.NewStack(c, 1), pos.Vec3Centre())
@@ -56,7 +56,7 @@ func (c Carpet) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
 }
 
 // UseOnBlock handles not placing carpets on top of air blocks.
-func (c Carpet) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (c Carpet) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, c)
 	if !used {
 		return

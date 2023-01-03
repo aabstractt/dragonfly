@@ -62,7 +62,7 @@ func (f *Firework) Rotation() cube.Rotation {
 }
 
 // Tick ...
-func (f *Firework) Tick(w *world.World, current int64) {
+func (f *Firework) Tick(w *world.Txn, current int64) {
 	if f.close {
 		_ = f.Close()
 		return

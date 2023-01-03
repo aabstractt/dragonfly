@@ -155,10 +155,10 @@ func (lt *ProjectileBehaviour) Tick(e *Ent) *Movement {
 	}
 
 	for i := 0; i < lt.conf.ParticleCount; i++ {
-		w.AddParticle(result.Position(), lt.conf.Particle)
+		w.addParticle(result.Position(), lt.conf.Particle)
 	}
 	if lt.conf.Sound != nil {
-		w.PlaySound(result.Position(), lt.conf.Sound)
+		w.playSound(result.Position(), lt.conf.Sound)
 	}
 
 	switch r := result.(type) {
@@ -168,7 +168,7 @@ func (lt *ProjectileBehaviour) Tick(e *Ent) *Movement {
 		}
 	case trace.BlockResult:
 		bpos := r.BlockPosition()
-		if t, ok := w.Block(bpos).(block.TNT); ok && e.OnFireDuration() > 0 {
+		if t, ok := w.block(bpos).(block.TNT); ok && e.OnFireDuration() > 0 {
 			t.Ignite(bpos, w)
 		}
 		if lt.conf.SurviveBlockCollision {
@@ -188,7 +188,7 @@ func (lt *ProjectileBehaviour) Tick(e *Ent) *Movement {
 // projectile is still attached to a block and if it can be picked up.
 func (lt *ProjectileBehaviour) tickAttached(e *Ent) bool {
 	w := e.World()
-	boxes := w.Block(lt.collisionPos).Model().BBox(lt.collisionPos, w)
+	boxes := w.block(lt.collisionPos).Model().BBox(lt.collisionPos, w)
 	box := e.Type().BBox(e).Translate(e.pos)
 
 	for _, bb := range boxes {
@@ -212,7 +212,7 @@ func (lt *ProjectileBehaviour) tryPickup(e *Ent) {
 	ignore := func(other world.Entity) bool {
 		return e == other
 	}
-	for _, other := range w.EntitiesWithin(translated.Grow(2), ignore) {
+	for _, other := range w.entitiesWithin(translated.Grow(2), ignore) {
 		if !other.Type().BBox(other).Translate(other.Position()).IntersectsWith(grown) {
 			continue
 		}

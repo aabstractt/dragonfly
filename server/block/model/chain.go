@@ -12,11 +12,11 @@ type Chain struct {
 }
 
 // BBox ...
-func (c Chain) BBox(cube.Pos, *world.World) []cube.BBox {
+func (c Chain) BBox(cube.Pos, *world.Txn) []cube.BBox {
 	return []cube.BBox{cube.Box(0.40625, 0.40625, 0.40625, 0.59375, 0.59375, 0.59375).Stretch(c.Axis, 0.40625)}
 }
 
 // FaceSolid ...
-func (Chain) FaceSolid(cube.Pos, cube.Face, *world.World) bool {
+func (Chain) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
 	return false
 }

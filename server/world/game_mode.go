@@ -1,8 +1,8 @@
 package world
 
-// GameMode represents a game mode that may be assigned to a player. Upon joining the world, players will be
-// given the default game mode that the world holds.
-// Game modes specify the way that a player interacts with and plays in the world.
+// GameMode represents a game mode that may be assigned to a player. Upon joining the World, players will be
+// given the default game mode that the World holds.
+// Game modes specify the way that a player interacts with and plays in the World.
 type GameMode interface {
 	// AllowsEditing specifies if a player with this GameMode can edit the World it's in.
 	AllowsEditing() bool
@@ -10,12 +10,12 @@ type GameMode interface {
 	AllowsTakingDamage() bool
 	// CreativeInventory specifies if a player with this GameMode has access to the creative inventory.
 	CreativeInventory() bool
-	// HasCollision specifies if a player with this GameMode can collide with blocks or entities in the world.
+	// HasCollision specifies if a player with this GameMode can collide with blocks or entities in the World.
 	HasCollision() bool
 	// AllowsFlying specifies if a player with this GameMode can fly freely.
 	AllowsFlying() bool
-	// AllowsInteraction specifies if a player with this GameMode can interact with the world through entities or if it
-	// can use items in the world.
+	// AllowsInteraction specifies if a player with this GameMode can interact with the World through entities or if it
+	// can use items in the World.
 	AllowsInteraction() bool
 	// Visible specifies if a player with this GameMode can be visible to other players. If false, the player will be
 	// invisible under any circumstance.
@@ -29,11 +29,11 @@ var (
 	// GameModeCreative represents the creative game mode: Players with this game mode have infinite blocks and
 	// items and can break blocks instantly. Players with creative mode can also fly.
 	GameModeCreative creative
-	// GameModeAdventure represents the adventure game mode: Players with this game mode cannot edit the world
+	// GameModeAdventure represents the adventure game mode: Players with this game mode cannot edit the World
 	// (placing or breaking blocks).
 	GameModeAdventure adventure
 	// GameModeSpectator represents the spectator game mode: Players with this game mode cannot interact with the
-	// world and cannot be seen by other players. spectator players can fly, like creative mode, and can
+	// World and cannot be seen by other players. spectator players can fly, like creative mode, and can
 	// move through blocks.
 	GameModeSpectator spectator
 )
@@ -62,7 +62,7 @@ func (creative) AllowsFlying() bool       { return true }
 func (creative) AllowsInteraction() bool  { return true }
 func (creative) Visible() bool            { return true }
 
-// adventure represents the adventure game mode: Players with this game mode cannot edit the world
+// adventure represents the adventure game mode: Players with this game mode cannot edit the World
 // (placing or breaking blocks).
 type adventure struct{}
 
@@ -75,7 +75,7 @@ func (adventure) AllowsInteraction() bool  { return true }
 func (adventure) Visible() bool            { return true }
 
 // spectator represents the spectator game mode: Players with this game mode cannot interact with the
-// world and cannot be seen by other players. spectator players can fly, like creative mode, and can
+// World and cannot be seen by other players. spectator players can fly, like creative mode, and can
 // move through blocks.
 type spectator struct{}
 

@@ -88,7 +88,7 @@ func (a *AreaEffectCloud) Effects() []effect.Effect {
 }
 
 // Tick ...
-func (a *AreaEffectCloud) Tick(w *world.World, _ int64) {
+func (a *AreaEffectCloud) Tick(w *world.Txn, current int64) {
 	if a.close {
 		_ = a.Close()
 		return

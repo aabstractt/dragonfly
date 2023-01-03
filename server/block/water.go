@@ -27,7 +27,7 @@ type Water struct {
 }
 
 // EntityInside ...
-func (w Water) EntityInside(_ cube.Pos, _ *world.World, e world.Entity) {
+func (w Water) EntityInside(pos cube.Pos, wo *world.Txn, e world.Entity) {
 	if fallEntity, ok := e.(fallDistanceEntity); ok {
 		fallEntity.ResetFallDistance()
 	}
@@ -83,7 +83,7 @@ func (Water) LightDiffusionLevel() uint8 {
 }
 
 // ScheduledTick ...
-func (w Water) ScheduledTick(pos cube.Pos, wo *world.World, _ *rand.Rand) {
+func (w Water) ScheduledTick(pos cube.Pos, wo *world.Txn, r *rand.Rand) {
 	if w.Depth == 7 {
 		// Attempt to form new water source blocks.
 		count := 0
@@ -95,14 +95,14 @@ func (w Water) ScheduledTick(pos cube.Pos, wo *world.World, _ *rand.Rand) {
 					}
 				}
 			}
-		}, wo.Range())
+		}, wo.World().Range())
 		if count >= 2 {
 			if !canFlowInto(w, wo, pos.Side(cube.FaceDown), true) {
 				// Only form a new source block if there either is no water below this block, or if the water
 				// below this is not falling (full source block).
 				res := Water{Depth: 8, Still: true}
 				ctx := event.C()
-				if wo.Handler().HandleLiquidFlow(ctx, pos, pos, res, w); ctx.Cancelled() {
+				if wo.World().Handler().HandleLiquidFlow(ctx, pos, pos, res, w); ctx.Cancelled() {
 					return
 				}
 				wo.SetLiquid(pos, res)
@@ -113,8 +113,8 @@ func (w Water) ScheduledTick(pos cube.Pos, wo *world.World, _ *rand.Rand) {
 }
 
 // NeighbourUpdateTick ...
-func (Water) NeighbourUpdateTick(pos, _ cube.Pos, wo *world.World) {
-	if wo.Dimension().WaterEvaporates() {
+func (Water) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, wo *world.Txn) {
+	if wo.World().Dimension().WaterEvaporates() {
 		// Particles are spawned client-side.
 		wo.SetLiquid(pos, nil)
 		return
@@ -128,13 +128,13 @@ func (Water) LiquidType() string {
 }
 
 // Harden hardens the water if lava flows into it.
-func (w Water) Harden(pos cube.Pos, wo *world.World, flownIntoBy *cube.Pos) bool {
+func (w Water) Harden(pos cube.Pos, wo *world.Txn, flownIntoBy *cube.Pos) bool {
 	if flownIntoBy == nil {
 		return false
 	}
 	if lava, ok := wo.Block(pos.Side(cube.FaceUp)).(Lava); ok {
 		ctx := event.C()
-		if wo.Handler().HandleLiquidHarden(ctx, pos, w, lava, Stone{}); ctx.Cancelled() {
+		if wo.World().Handler().HandleLiquidHarden(ctx, pos, w, lava, Stone{}); ctx.Cancelled() {
 			return false
 		}
 		wo.SetBlock(pos, Stone{}, nil)
@@ -142,7 +142,7 @@ func (w Water) Harden(pos cube.Pos, wo *world.World, flownIntoBy *cube.Pos) bool
 		return true
 	} else if lava, ok := wo.Block(*flownIntoBy).(Lava); ok {
 		ctx := event.C()
-		if wo.Handler().HandleLiquidHarden(ctx, pos, w, lava, Cobblestone{}); ctx.Cancelled() {
+		if wo.World().Handler().HandleLiquidHarden(ctx, pos, w, lava, Cobblestone{}); ctx.Cancelled() {
 			return false
 		}
 		wo.SetBlock(*flownIntoBy, Cobblestone{}, nil)

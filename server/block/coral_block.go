@@ -19,7 +19,7 @@ type CoralBlock struct {
 }
 
 // NeighbourUpdateTick ...
-func (c CoralBlock) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (c CoralBlock) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if c.Dead {
 		return
 	}
@@ -27,7 +27,7 @@ func (c CoralBlock) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
 }
 
 // ScheduledTick ...
-func (c CoralBlock) ScheduledTick(pos cube.Pos, w *world.World, _ *rand.Rand) {
+func (c CoralBlock) ScheduledTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 	if c.Dead {
 		return
 	}
@@ -39,7 +39,7 @@ func (c CoralBlock) ScheduledTick(pos cube.Pos, w *world.World, _ *rand.Rand) {
 				adjacentWater = true
 			}
 		}
-	}, w.Range())
+	}, w.World().Range())
 	if !adjacentWater {
 		c.Dead = true
 		w.SetBlock(pos, c, nil)

@@ -39,7 +39,7 @@ func (b Beacon) BreakInfo() BreakInfo {
 }
 
 // Activate manages the opening of a beacon by activating it.
-func (b Beacon) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.User, _ *item.UseContext) bool {
+func (b Beacon) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		opener.OpenBlockContainer(pos)
 		return true
@@ -75,7 +75,7 @@ func (b Beacon) EncodeNBT() map[string]any {
 }
 
 // SideClosed ...
-func (b Beacon) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (b Beacon) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 	return false
 }
 
@@ -91,7 +91,7 @@ func (b Beacon) Level() int {
 
 // Tick recalculates level, recalculates the active state of the beacon, and powers players,
 // once every 80 ticks (4 seconds).
-func (b Beacon) Tick(currentTick int64, pos cube.Pos, w *world.World) {
+func (b Beacon) Tick(currentTick int64, pos cube.Pos, w *world.Txn) {
 	if currentTick%80 == 0 {
 		before := b.level
 		// Recalculating pyramid level and powering up players in range once every 4 seconds.
@@ -109,7 +109,7 @@ func (b Beacon) Tick(currentTick int64, pos cube.Pos, w *world.World) {
 }
 
 // recalculateLevel recalculates the level of the beacon's pyramid and returns it. The level can be 0-4.
-func (b Beacon) recalculateLevel(pos cube.Pos, w *world.World) int {
+func (b Beacon) recalculateLevel(pos cube.Pos, w *world.Txn) int {
 	var lvl int
 	iter := 1
 	// This loop goes over all 4 possible pyramid levels.
@@ -128,9 +128,9 @@ func (b Beacon) recalculateLevel(pos cube.Pos, w *world.World) int {
 }
 
 // obstructed determines whether the beacon is currently obstructed.
-func (b Beacon) obstructed(pos cube.Pos, w *world.World) bool {
+func (b Beacon) obstructed(pos cube.Pos, w *world.Txn) bool {
 	// Fast obstructed light calculation.
-	if w.SkyLight(pos.Side(cube.FaceUp)) == 15 {
+	if w.Skylight(pos.Side(cube.FaceUp)) == 15 {
 		return false
 	}
 	// Slow obstructed light calculation, if the fast way out didn't suffice.
@@ -140,7 +140,7 @@ func (b Beacon) obstructed(pos cube.Pos, w *world.World) bool {
 // broadcastBeaconEffects determines the entities in range which could receive the beacon's powers, and
 // determines the powers (effects) that these entities could get. Afterwards, the entities in range that are
 // beaconAffected get their according effect(s).
-func (b Beacon) broadcastBeaconEffects(pos cube.Pos, w *world.World) {
+func (b Beacon) broadcastBeaconEffects(pos cube.Pos, w *world.Txn) {
 	seconds := 9 + b.level*2
 	if b.level == 4 {
 		seconds--

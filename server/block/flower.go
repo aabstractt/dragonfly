@@ -22,7 +22,7 @@ type Flower struct {
 }
 
 // EntityInside ...
-func (f Flower) EntityInside(_ cube.Pos, _ *world.World, e world.Entity) {
+func (f Flower) EntityInside(pos cube.Pos, w *world.Txn, e world.Entity) {
 	if f.Type == WitherRose() {
 		if living, ok := e.(interface {
 			AddEffect(effect.Effect)
@@ -33,7 +33,7 @@ func (f Flower) EntityInside(_ cube.Pos, _ *world.World, e world.Entity) {
 }
 
 // BoneMeal ...
-func (f Flower) BoneMeal(pos cube.Pos, w *world.World) (success bool) {
+func (f Flower) BoneMeal(pos cube.Pos, w *world.Txn) (success bool) {
 	if f.Type == WitherRose() {
 		return
 	}
@@ -61,7 +61,7 @@ func (f Flower) BoneMeal(pos cube.Pos, w *world.World) (success bool) {
 }
 
 // NeighbourUpdateTick ...
-func (f Flower) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (f Flower) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
 	if !supportsVegetation(f, w.Block(pos.Side(cube.FaceDown))) {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: f})
@@ -70,7 +70,7 @@ func (f Flower) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
 }
 
 // UseOnBlock ...
-func (f Flower) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
+func (f Flower) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, f)
 	if !used {
 		return false

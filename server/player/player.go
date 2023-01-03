@@ -537,11 +537,11 @@ func (p *Player) fall(distance float64) {
 	var (
 		w   = p.World()
 		pos = cube.PosFromVec3(p.Position())
-		b   = w.Block(pos)
+		b   = w.block(pos)
 	)
 	if len(b.Model().BBox(pos, w)) == 0 {
 		pos = pos.Sub(cube.Pos{0, 1})
-		b = w.Block(pos)
+		b = w.block(pos)
 	}
 	if h, ok := b.(block.EntityLander); ok {
 		h.EntityLand(pos, w, p, &distance)
@@ -606,9 +606,9 @@ func (p *Player) Hurt(dmg float64, src world.DamageSource) (float64, bool) {
 		viewer.ViewEntityAction(p, entity.HurtAction{})
 	}
 	if src.Fire() {
-		w.PlaySound(pos, sound.Burning{})
+		w.playSound(pos, sound.Burning{})
 	} else if _, ok := src.(entity.DrowningDamageSource); ok {
-		w.PlaySound(pos, sound.Drowning{})
+		w.playSound(pos, sound.Drowning{})
 	}
 
 	p.immunity.Store(time.Now().Add(immunity))
@@ -921,7 +921,7 @@ func (p *Player) dropContents() {
 	w, pos := p.World(), p.Position()
 	for _, orb := range entity.NewExperienceOrbs(pos, int(math.Min(float64(p.experience.Level()*7), 100))) {
 		orb.SetVelocity(mgl64.Vec3{(rand.Float64()*0.2 - 0.1) * 2, rand.Float64() * 0.4, (rand.Float64()*0.2 - 0.1) * 2})
-		w.AddEntity(orb)
+		w.addEntity(orb)
 	}
 	p.experience.Reset()
 	p.session().SendExperience(p.experience)
@@ -933,7 +933,7 @@ func (p *Player) dropContents() {
 		}
 		ent := entity.NewItem(it, pos)
 		ent.SetVelocity(mgl64.Vec3{rand.Float64()*0.2 - 0.1, 0.2, rand.Float64()*0.2 - 0.1})
-		w.AddEntity(ent)
+		w.addEntity(ent)
 	}
 }
 
@@ -957,7 +957,7 @@ func (p *Player) Respawn() {
 
 	p.Handler().HandleRespawn(&pos, &w)
 
-	w.AddEntity(p)
+	w.addEntity(p)
 	p.Teleport(pos)
 	p.session().SendRespawn(pos)
 
@@ -1382,7 +1382,7 @@ func (p *Player) UseItem() {
 		useCtx := p.useContext()
 		useCtx.NewItem = usable.Consume(w, p)
 		p.addNewItem(useCtx)
-		w.PlaySound(p.Position().Add(mgl64.Vec3{0, 1.5}), sound.Burp{})
+		w.playSound(p.Position().Add(mgl64.Vec3{0, 1.5}), sound.Burp{})
 	}
 }
 
@@ -1455,7 +1455,7 @@ func (p *Player) UsingItem() bool {
 // UseItemOnBlock does nothing if the block at the cube.Pos passed is of the type block.Air.
 func (p *Player) UseItemOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
 	w := p.World()
-	if _, ok := w.Block(pos).(block.Air); ok || !p.canReach(pos.Vec3Centre()) {
+	if _, ok := w.block(pos).(block.Air); ok || !p.canReach(pos.Vec3Centre()) {
 		// The client used its item on a block that does not exist server-side or one it couldn't reach. Stop trying
 		// to use the item immediately.
 		p.resendBlocks(pos, w, face)
@@ -1467,7 +1467,7 @@ func (p *Player) UseItemOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec
 		return
 	}
 	i, left := p.HeldItems()
-	b := w.Block(pos)
+	b := w.block(pos)
 	if act, ok := b.(block.Activatable); ok {
 		// If a player is sneaking, it will not activate the block clicked, unless it is not holding any
 		// items, in which case the block will be activated as usual.
@@ -1503,7 +1503,7 @@ func (p *Player) UseItemOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec
 			// The block clicked was either not replaceable, or not replaceable using the block passed.
 			replacedPos = pos.Side(face)
 		}
-		if replaceable, ok := w.Block(replacedPos).(block.Replaceable); !ok || !replaceable.ReplaceableBy(ib) || replacedPos.OutOfBounds(w.Range()) {
+		if replaceable, ok := w.block(replacedPos).(block.Replaceable); !ok || !replaceable.ReplaceableBy(ib) || replacedPos.OutOfBounds(w.Range()) {
 			return
 		}
 		if !p.placeBlock(replacedPos, ib, false) || p.GameMode().CreativeInventory() {
@@ -1587,7 +1587,7 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 	n, vulnerable := living.Hurt(dmg, entity.AttackDamageSource{Attacker: p})
 	i, left := p.HeldItems()
 
-	p.World().PlaySound(entity.EyePosition(e), sound.Attack{Damage: !mgl64.FloatEqual(n, 0)})
+	p.World().playSound(entity.EyePosition(e), sound.Attack{Damage: !mgl64.FloatEqual(n, 0)})
 	if !vulnerable {
 		return true
 	}
@@ -1626,14 +1626,14 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
 	p.AbortBreaking()
 	w := p.World()
-	if _, air := w.Block(pos).(block.Air); air || !p.canReach(pos.Vec3Centre()) {
+	if _, air := w.block(pos).(block.Air); air || !p.canReach(pos.Vec3Centre()) {
 		// The block was either out of range or air, so it can't be broken by the player.
 		return
 	}
-	if _, ok := w.Block(pos.Side(face)).(block.Fire); ok {
+	if _, ok := w.block(pos.Side(face)).(block.Fire); ok {
 		// TODO: Add a way to cancel fire extinguishing. This is currently not possible to handle.
-		w.SetBlock(pos.Side(face), nil, nil)
-		w.PlaySound(pos.Vec3(), sound.FireExtinguish{})
+		w.setBlock(pos.Side(face), nil, nil)
+		w.playSound(pos.Vec3(), sound.FireExtinguish{})
 		return
 	}
 
@@ -1650,7 +1650,7 @@ func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
 	if p.Handler().HandleStartBreak(ctx, pos); ctx.Cancelled() {
 		return
 	}
-	if punchable, ok := w.Block(pos).(block.Punchable); ok {
+	if punchable, ok := w.block(pos).(block.Punchable); ok {
 		punchable.Punch(pos, face, w, p)
 	}
 
@@ -1671,7 +1671,7 @@ func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
 func (p *Player) breakTime(pos cube.Pos) time.Duration {
 	held, _ := p.HeldItems()
 	w := p.World()
-	breakTime := block.BreakDuration(w.Block(pos), held)
+	breakTime := block.BreakDuration(w.block(pos), held)
 	if !p.OnGround() {
 		breakTime *= 5
 	}
@@ -1731,13 +1731,13 @@ func (p *Player) ContinueBreaking(face cube.Face) {
 	p.SwingArm()
 
 	w := p.World()
-	b := w.Block(pos)
-	w.AddParticle(pos.Vec3(), particle.PunchBlock{Block: b, Face: face})
+	b := w.block(pos)
+	w.addParticle(pos.Vec3(), particle.PunchBlock{Block: b, Face: face})
 
 	if p.breakParticleCounter.Add(1)%5 == 0 {
 		// We send this sound only every so often. Vanilla doesn't send it every tick while breaking
 		// either. Every 5 ticks seems accurate.
-		w.PlaySound(pos.Vec3(), sound.BlockBreaking{Block: w.Block(pos)})
+		w.playSound(pos.Vec3(), sound.BlockBreaking{Block: w.block(pos)})
 	}
 	breakTime := p.breakTime(pos)
 	if breakTime != p.lastBreakDuration {
@@ -1779,8 +1779,8 @@ func (p *Player) placeBlock(pos cube.Pos, b world.Block, ignoreBBox bool) bool {
 		p.resendBlocks(pos, w, cube.Faces()...)
 		return false
 	}
-	w.SetBlock(pos, b, nil)
-	w.PlaySound(pos.Vec3(), sound.BlockPlace{Block: b})
+	w.setBlock(pos, b, nil)
+	w.playSound(pos.Vec3(), sound.BlockPlace{Block: b})
 	p.SwingArm()
 	return true
 }
@@ -1794,7 +1794,7 @@ func (p *Player) obstructedPos(pos cube.Pos, b world.Block) bool {
 		blockBoxes[i] = box.Translate(pos.Vec3())
 	}
 
-	around := w.EntitiesWithin(cube.Box(-3, -3, -3, 3, 3, 3).Translate(pos.Vec3()), nil)
+	around := w.entitiesWithin(cube.Box(-3, -3, -3, 3, 3, 3).Translate(pos.Vec3()), nil)
 	for _, e := range around {
 		switch e.Type().(type) {
 		case entity.ItemType, entity.ArrowType:
@@ -1812,7 +1812,7 @@ func (p *Player) obstructedPos(pos cube.Pos, b world.Block) bool {
 // reach the block passed, the method returns immediately.
 func (p *Player) BreakBlock(pos cube.Pos) {
 	w := p.World()
-	b := w.Block(pos)
+	b := w.block(pos)
 	if _, air := b.(block.Air); air {
 		// Don't do anything if the position broken is already air.
 		return
@@ -1841,8 +1841,8 @@ func (p *Player) BreakBlock(pos cube.Pos) {
 	held, left := p.HeldItems()
 
 	p.SwingArm()
-	w.SetBlock(pos, nil, nil)
-	w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
+	w.setBlock(pos, nil, nil)
+	w.addParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
 
 	if breakable, ok := b.(block.Breakable); ok {
 		info := breakable.BreakInfo()
@@ -1851,13 +1851,13 @@ func (p *Player) BreakBlock(pos cube.Pos) {
 		}
 		for _, orb := range entity.NewExperienceOrbs(pos.Vec3Centre(), xp) {
 			orb.SetVelocity(mgl64.Vec3{(rand.Float64()*0.2 - 0.1) * 2, rand.Float64() * 0.4, (rand.Float64()*0.2 - 0.1) * 2})
-			w.AddEntity(orb)
+			w.addEntity(orb)
 		}
 	}
 	for _, drop := range drops {
 		ent := entity.NewItem(drop, pos.Vec3Centre())
 		ent.SetVelocity(mgl64.Vec3{rand.Float64()*0.2 - 0.1, 0.2, rand.Float64()*0.2 - 0.1})
-		w.AddEntity(ent)
+		w.addEntity(ent)
 	}
 
 	p.Exhaust(0.005)
@@ -1903,7 +1903,7 @@ func (p *Player) PickBlock(pos cube.Pos) {
 		return
 	}
 
-	b := p.World().Block(pos)
+	b := p.World().block(pos)
 
 	var pickedItem item.Stack
 	if pi, ok := b.(block.Pickable); ok {
@@ -2021,14 +2021,14 @@ func (p *Player) Move(deltaPos mgl64.Vec3, deltaYaw, deltaPitch float64) {
 		}
 		if p.collidedHorizontally.Load() {
 			if force := horizontalVel.Len()*10.0 - 3.0; force > 0.0 && !p.AttackImmune() {
-				w.PlaySound(p.Position(), sound.Fall{Distance: force})
+				w.playSound(p.Position(), sound.Fall{Distance: force})
 				p.Hurt(force, entity.GlideDamageSource{})
 			}
 		}
 	}
 
-	_, submergedBefore := w.Liquid(cube.PosFromVec3(pos.Add(mgl64.Vec3{0, p.EyeHeight()})))
-	_, submergedAfter := w.Liquid(cube.PosFromVec3(res.Add(mgl64.Vec3{0, p.EyeHeight()})))
+	_, submergedBefore := w.liquid(cube.PosFromVec3(pos.Add(mgl64.Vec3{0, p.EyeHeight()})))
+	_, submergedAfter := w.liquid(cube.PosFromVec3(res.Add(mgl64.Vec3{0, p.EyeHeight()})))
 	if submergedBefore != submergedAfter {
 		// Player wasn't either breathing before and no longer isn't, or wasn't breathing before and now is,
 		// so send the updated metadata.
@@ -2231,7 +2231,7 @@ func (p *Player) Drop(s item.Stack) int {
 	if p.Handler().HandleItemDrop(ctx, e); ctx.Cancelled() {
 		return 0
 	}
-	p.World().AddEntity(e)
+	p.World().addEntity(e)
 	return s.Count()
 }
 
@@ -2272,7 +2272,7 @@ func (p *Player) Latency() time.Duration {
 }
 
 // Tick ticks the entity, performing actions such as checking if the player is still breaking a block.
-func (p *Player) Tick(w *world.World, current int64) {
+func (p *Player) Tick(w *world.Txn, current int64) {
 	if p.Dead() {
 		return
 	}
@@ -2280,7 +2280,7 @@ func (p *Player) Tick(w *world.World, current int64) {
 		p.Handler().HandleChangeWorld(p.lastTickedWorld, w)
 	}
 	p.lastTickedWorld = w
-	if _, ok := w.Liquid(cube.PosFromVec3(p.Position())); !ok {
+	if _, ok := w.liquid(cube.PosFromVec3(p.Position())); !ok {
 		p.StopSwimming()
 		if _, ok := p.Armour().Helmet().Item().(item.TurtleShell); ok {
 			p.AddEffect(effect.New(effect.WaterBreathing{}, 1, time.Second*10).WithoutParticles())
@@ -2463,7 +2463,7 @@ const breathingDistanceBelowEyes = 0.11111111
 // insideOfWater returns true if the player is currently underwater.
 func (p *Player) insideOfWater(w *world.World) bool {
 	pos := cube.PosFromVec3(entity.EyePosition(p))
-	if l, ok := w.Liquid(pos); ok {
+	if l, ok := w.liquid(pos); ok {
 		if _, ok := l.(block.Water); ok {
 			d := float64(l.SpreadDecay()) + 1
 			if l.LiquidFalling() {
@@ -2478,7 +2478,7 @@ func (p *Player) insideOfWater(w *world.World) bool {
 // insideOfSolid returns true if the player is inside a solid block.
 func (p *Player) insideOfSolid(w *world.World) bool {
 	pos := cube.PosFromVec3(entity.EyePosition(p))
-	b, box := w.Block(pos), p.Type().BBox(p).Translate(p.Position())
+	b, box := w.block(pos), p.Type().BBox(p).Translate(p.Position())
 
 	_, solid := b.Model().(model.Solid)
 	if !solid {
@@ -2516,7 +2516,7 @@ func (p *Player) checkBlockCollisions(vel mgl64.Vec3, w *world.World) {
 		for x := minX; x <= maxX; x++ {
 			for z := minZ; z <= maxZ; z++ {
 				pos := cube.Pos{x, y, z}
-				boxes := w.Block(pos).Model().BBox(pos, w)
+				boxes := w.block(pos).Model().BBox(pos, w)
 				for _, box := range boxes {
 					blocks = append(blocks, box.Translate(pos.Vec3()))
 				}
@@ -2561,7 +2561,7 @@ func (p *Player) checkEntityInsiders(w *world.World, entityBBox cube.BBox) {
 		for x := min[0]; x <= max[0]; x++ {
 			for z := min[2]; z <= max[2]; z++ {
 				blockPos := cube.Pos{x, y, z}
-				b := w.Block(blockPos)
+				b := w.block(blockPos)
 				if collide, ok := b.(block.EntityInsider); ok {
 					collide.EntityInside(blockPos, w, p)
 					if _, liquid := b.(world.Liquid); liquid {
@@ -2569,7 +2569,7 @@ func (p *Player) checkEntityInsiders(w *world.World, entityBBox cube.BBox) {
 					}
 				}
 
-				if l, ok := w.Liquid(blockPos); ok {
+				if l, ok := w.liquid(blockPos); ok {
 					if collide, ok := l.(block.EntityInsider); ok {
 						collide.EntityInside(blockPos, w, p)
 					}
@@ -2590,7 +2590,7 @@ func (p *Player) checkOnGround(w *world.World) bool {
 		for z := min[2]; z <= max[2]; z++ {
 			for y := min[1]; y < max[1]; y++ {
 				pos := cube.Pos{x, y, z}
-				boxList := w.Block(pos).Model().BBox(pos, w)
+				boxList := w.block(pos).Model().BBox(pos, w)
 				for _, bb := range boxList {
 					if bb.GrowVec3(mgl64.Vec3{0, 0.05}).Translate(pos.Vec3()).IntersectsWith(box) {
 						return true
@@ -2631,13 +2631,13 @@ func (p *Player) EyeHeight() float64 {
 	return 1.62
 }
 
-// PlaySound plays a world.Sound that only this Player can hear. Unlike World.PlaySound, it is not broadcast
+// PlaySound plays a world.Sound that only this Player can hear. Unlike World.playSound, it is not broadcast
 // to players around it.
 func (p *Player) PlaySound(sound world.Sound) {
 	p.session().PlaySound(sound)
 }
 
-// ShowParticle shows a particle that only this Player can see. Unlike World.AddParticle, it is not broadcast
+// ShowParticle shows a particle that only this Player can see. Unlike World.addParticle, it is not broadcast
 // to players around it.
 func (p *Player) ShowParticle(pos mgl64.Vec3, particle world.Particle) {
 	p.session().ViewParticle(pos, particle)
@@ -2647,7 +2647,7 @@ func (p *Player) ShowParticle(pos mgl64.Vec3, particle world.Particle) {
 // present or if the Player cannot edit it, an error is returned
 func (p *Player) EditSign(pos cube.Pos, text string) error {
 	w := p.World()
-	sign, ok := w.Block(pos).(block.Sign)
+	sign, ok := w.block(pos).(block.Sign)
 	if !ok {
 		return fmt.Errorf("edit sign: no sign at position %v", pos)
 	}
@@ -2660,7 +2660,7 @@ func (p *Player) EditSign(pos cube.Pos, text string) error {
 		return nil
 	}
 	sign.Text = text
-	w.SetBlock(pos, sign, nil)
+	w.setBlock(pos, sign, nil)
 	return nil
 }
 
@@ -2677,7 +2677,7 @@ func (p *Player) updateState() {
 func (p *Player) Breathing() bool {
 	_, breathing := p.Effect(effect.WaterBreathing{})
 	_, conduitPower := p.Effect(effect.ConduitPower{})
-	_, submerged := p.World().Liquid(cube.PosFromVec3(entity.EyePosition(p)))
+	_, submerged := p.World().liquid(cube.PosFromVec3(entity.EyePosition(p)))
 	return !p.GameMode().AllowsTakingDamage() || !submerged || breathing || conduitPower
 }
 
@@ -2701,7 +2701,7 @@ func (p *Player) PunchAir() {
 		return
 	}
 	p.SwingArm()
-	p.World().PlaySound(p.Position(), sound.Attack{})
+	p.World().playSound(p.Position(), sound.Attack{})
 }
 
 // damageItem damages the item stack passed with the damage passed and returns the new stack. If the item
@@ -2719,7 +2719,7 @@ func (p *Player) damageItem(s item.Stack, d int) item.Stack {
 		d = (enchantment.Unbreaking{}).Reduce(s.Item(), e.Level(), d)
 	}
 	if s = s.Damage(d); s.Empty() {
-		p.World().PlaySound(p.Position(), sound.ItemBreak{})
+		p.World().playSound(p.Position(), sound.ItemBreak{})
 	}
 	return s
 }
@@ -2807,7 +2807,7 @@ func (p *Player) close(msg string) {
 	}
 	// Only remove the player from the world if it's not attached to a session. If it is attached to a session, the
 	// session will remove the player once ready.
-	p.World().RemoveEntity(p)
+	p.World().removeEntity(p)
 }
 
 // load reads the player data from the provider. It uses the default values if the provider
@@ -2999,10 +2999,10 @@ func (p *Player) resendBlocks(pos cube.Pos, w *world.World, faces ...cube.Face) 
 
 // resendBlock resends the block at a cube.Pos in the world.World passed.
 func (p *Player) resendBlock(pos cube.Pos, w *world.World) {
-	b := w.Block(pos)
+	b := w.block(pos)
 	p.session().ViewBlockUpdate(pos, b, 0)
 	if _, ok := b.(world.Liquid); !ok {
-		if liq, ok := w.Liquid(pos); ok {
+		if liq, ok := w.liquid(pos); ok {
 			p.session().ViewBlockUpdate(pos, liq, 1)
 		}
 	}

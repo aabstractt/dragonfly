@@ -19,7 +19,7 @@ type Firework struct {
 }
 
 // Use ...
-func (f Firework) Use(w *world.World, user User, ctx *UseContext) bool {
+func (f Firework) Use(w *world.Txn, user User, ctx *UseContext) bool {
 	if g, ok := user.(interface {
 		Gliding() bool
 	}); !ok || !g.Gliding() {
@@ -38,7 +38,7 @@ func (f Firework) Use(w *world.World, user User, ctx *UseContext) bool {
 }
 
 // UseOnBlock ...
-func (f Firework) UseOnBlock(blockPos cube.Pos, _ cube.Face, clickPos mgl64.Vec3, w *world.World, user User, ctx *UseContext) bool {
+func (f Firework) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
 	pos := blockPos.Vec3().Add(clickPos)
 	create := w.EntityRegistry().Config().Firework
 	w.AddEntity(create(pos, rand.Float64()*360, 90, false, f, user))

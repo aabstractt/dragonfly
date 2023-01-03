@@ -23,14 +23,14 @@ func (HayBale) Instrument() sound.Instrument {
 }
 
 // EntityLand ...
-func (h HayBale) EntityLand(_ cube.Pos, _ *world.World, e world.Entity, distance *float64) {
+func (h HayBale) EntityLand(pos cube.Pos, w *world.Txn, e world.Entity, distance *float64) {
 	if _, ok := e.(fallDistanceEntity); ok {
 		*distance *= 0.2
 	}
 }
 
 // UseOnBlock ...
-func (h HayBale) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
+func (h HayBale) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
 	pos, face, used = firstReplaceable(w, pos, face, h)
 	if !used {
 		return

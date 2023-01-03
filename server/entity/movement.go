@@ -103,7 +103,7 @@ func (c *MovementComputer) applyVerticalForces(vel mgl64.Vec3) mgl64.Vec3 {
 func (c *MovementComputer) applyHorizontalForces(w *world.World, pos, vel mgl64.Vec3) mgl64.Vec3 {
 	friction := 1 - c.Drag
 	if c.onGround {
-		if f, ok := w.Block(cube.PosFromVec3(pos).Side(cube.FaceDown)).(interface {
+		if f, ok := w.block(cube.PosFromVec3(pos).Side(cube.FaceDown)).(interface {
 			Friction() float64
 		}); ok {
 			friction *= f.Friction()
@@ -184,7 +184,7 @@ func blockBBoxsAround(e world.Entity, box cube.BBox) []cube.BBox {
 		for x := minX; x <= maxX; x++ {
 			for z := minZ; z <= maxZ; z++ {
 				pos := cube.Pos{x, y, z}
-				boxes := w.Block(pos).Model().BBox(pos, w)
+				boxes := w.block(pos).Model().BBox(pos, w)
 				for _, box := range boxes {
 					blockBBoxs = append(blockBBoxs, box.Translate(mgl64.Vec3{float64(x), float64(y), float64(z)}))
 				}

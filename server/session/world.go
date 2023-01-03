@@ -900,7 +900,7 @@ func (s *Session) OpenBlockContainer(pos cube.Pos) {
 	s.closeCurrentContainer()
 
 	w := s.c.World()
-	b := w.Block(pos)
+	b := w.block(pos)
 	if container, ok := b.(block.Container); ok {
 		s.openNormalContainer(container, pos)
 		return

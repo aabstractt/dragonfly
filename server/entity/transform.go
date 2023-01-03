@@ -55,6 +55,6 @@ func (t *transform) World() *world.World {
 // Close closes the transform and removes the associated entity from the world.
 func (t *transform) Close() error {
 	w, _ := world.OfEntity(t.e)
-	w.RemoveEntity(t.e)
+	w.removeEntity(t.e)
 	return nil
 }
