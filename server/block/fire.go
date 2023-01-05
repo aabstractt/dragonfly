@@ -161,7 +161,7 @@ func (f Fire) tick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 					if flammable, ok := w.Block(neighbour).(Flammable); ok {
 						encouragement = max(encouragement, flammable.FlammabilityInfo().Encouragement)
 					}
-				}, w.World().Range())
+				}, w.Range())
 				if encouragement <= 0 {
 					continue
 				}

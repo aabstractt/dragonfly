@@ -12,12 +12,26 @@ type Txn struct {
 	w        *World
 }
 
+// Range returns the lower and upper bounds of the World that the Txn is
+// operating on.
+func (txn *Txn) Range() cube.Range {
+	return txn.w.ra
+}
+
 func (txn *Txn) SetBlock(pos cube.Pos, b Block, opts *SetOpts) {
 	txn.World().setBlock(pos, b, opts)
 }
 
 func (txn *Txn) Block(pos cube.Pos) Block {
 	return txn.World().block(pos)
+}
+
+func (txn *Txn) Liquid(pos cube.Pos) (Liquid, bool) {
+	return txn.World().liquid(pos)
+}
+
+func (txn *Txn) SetLiquid(pos cube.Pos, b Liquid) {
+	txn.World().setLiquid(pos, b)
 }
 
 func (txn *Txn) BuildStructure(pos cube.Pos, s Structure) {
@@ -44,14 +58,6 @@ func (txn *Txn) Skylight(pos cube.Pos) uint8 {
 	return txn.World().skylight(pos)
 }
 
-func (txn *Txn) Liquid(pos cube.Pos) (Liquid, bool) {
-	return txn.World().liquid(pos)
-}
-
-func (txn *Txn) SetLiquid(pos cube.Pos, b Liquid) {
-	txn.World().setLiquid(pos, b)
-}
-
 func (txn *Txn) SetBiome(pos cube.Pos, b Biome) {
 	txn.World().setBiome(pos, b)
 }
@@ -66,6 +72,14 @@ func (txn *Txn) Temperature(pos cube.Pos) float64 {
 
 func (txn *Txn) RainingAt(pos cube.Pos) bool {
 	return txn.World().rainingAt(pos)
+}
+
+func (txn *Txn) SnowingAt(pos cube.Pos) bool {
+	return txn.World().snowingAt(pos)
+}
+
+func (txn *Txn) ThunderingAt(pos cube.Pos) bool {
+	return txn.World().thunderingAt(pos)
 }
 
 func (txn *Txn) AddParticle(pos mgl64.Vec3, p Particle) {

@@ -30,7 +30,7 @@ func (d DragonEgg) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
 // teleport ...
 func (d DragonEgg) teleport(pos cube.Pos, w *world.Txn) {
 	for i := 0; i < 1000; i++ {
-		newPos := pos.Add(cube.Pos{rand.Intn(31) - 15, max(w.World().Range()[0]-pos.Y(), min(w.World().Range()[1]-pos.Y(), rand.Intn(15)-7)), rand.Intn(31) - 15})
+		newPos := pos.Add(cube.Pos{rand.Intn(31) - 15, max(w.Range()[0]-pos.Y(), min(w.Range()[1]-pos.Y(), rand.Intn(15)-7)), rand.Intn(31) - 15})
 
 		if _, ok := w.Block(newPos).(Air); ok {
 			w.SetBlock(newPos, d, nil)

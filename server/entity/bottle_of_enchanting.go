@@ -30,7 +30,7 @@ var bottleOfEnchantingConf = ProjectileBehaviourConfig{
 func spawnExperience(e *Ent, target trace.Result) {
 	for _, orb := range NewExperienceOrbs(target.Position(), rand.Intn(9)+3) {
 		orb.SetVelocity(mgl64.Vec3{(rand.Float64()*0.2 - 0.1) * 2, rand.Float64() * 0.4, (rand.Float64()*0.2 - 0.1) * 2})
-		e.World().addEntity(orb)
+		e.World().AddEntity(orb)
 	}
 }
 

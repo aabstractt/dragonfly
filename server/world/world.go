@@ -37,13 +37,9 @@ type World struct {
 
 	weather
 
-	lastPos   ChunkPos
-	lastChunk *chunkData
-
 	closing chan struct{}
 	running sync.WaitGroup
 
-	chunkMu sync.Mutex
 	// chunks holds a cache of chunks currently loaded. These chunks are cleared from this map after some time
 	// of not being used.
 	chunks map[ChunkPos]*chunkData
@@ -55,7 +51,6 @@ type World struct {
 
 	r *rand.Rand
 
-	updateMu sync.Mutex
 	// scheduledUpdates is a map of tick time values indexed by the block position at which an update is
 	// scheduled. If the current tick exceeds the tick value passed, the block update will be performed
 	// and the entry will be removed from the map.
@@ -200,12 +195,15 @@ func (w *World) highestBlock(x, z int) int {
 // highestObstructingBlock returns the highest block in the World at a given x and z that has at least a solid top or
 // bottom face.
 func (w *World) highestObstructingBlock(x, z int) int {
+	// Create a temporary transaction, because the FaceSolid method needs one.
+	txn := &Txn{w: w}
+
 	min := w.ra[0]
 	yHigh := w.highestBlock(x, z)
 	for y := yHigh; y >= min; y-- {
 		pos := cube.Pos{x, y, z}
 		m := w.block(pos).Model()
-		if m.FaceSolid(pos, cube.FaceUp, w) || m.FaceSolid(pos, cube.FaceDown, w) {
+		if m.FaceSolid(pos, cube.FaceUp, txn) || m.FaceSolid(pos, cube.FaceDown, txn) {
 			return y
 		}
 	}
@@ -714,9 +712,6 @@ func (w *World) removeEntity(e Entity) {
 // entitiesWithin does a lookup through the entities in the chunks touched by the BBox passed, returning all
 // those which are contained within the BBox when it comes to their position.
 func (w *World) entitiesWithin(box cube.BBox, ignored func(Entity) bool) []Entity {
-	if w == nil {
-		return nil
-	}
 	// Make an estimate of 16 entities on average.
 	m := make([]Entity, 0, 16)
 
@@ -724,15 +719,11 @@ func (w *World) entitiesWithin(box cube.BBox, ignored func(Entity) bool) []Entit
 
 	for x := minPos[0]; x <= maxPos[0]; x++ {
 		for z := minPos[1]; z <= maxPos[1]; z++ {
-			c, ok := w.chunkFromCache(ChunkPos{x, z})
+			c, ok := w.chunks[ChunkPos{x, z}]
 			if !ok {
-				// The chunk wasn't loaded, so there are no entities here.
 				continue
 			}
-			entities := slices.Clone(c.entities)
-			c.Unlock()
-
-			for _, entity := range entities {
+			for _, entity := range c.entities {
 				if ignored != nil && ignored(entity) {
 					continue
 				}
@@ -907,18 +898,14 @@ func (w *World) scheduleBlockUpdate(pos cube.Pos, delay time.Duration) {
 
 // doBlockUpdatesAround schedules block updates directly around and on the position passed.
 func (w *World) doBlockUpdatesAround(pos cube.Pos) {
-	if w == nil || pos.OutOfBounds(w.Range()) {
+	if pos.OutOfBounds(w.Range()) {
 		return
 	}
 
-	changed := pos
-
-	w.updateMu.Lock()
-	w.updateNeighbour(pos, changed)
-	pos.Neighbours(func(pos cube.Pos) {
-		w.updateNeighbour(pos, changed)
+	w.updateNeighbour(pos, pos)
+	pos.Neighbours(func(neighbour cube.Pos) {
+		w.updateNeighbour(neighbour, pos)
 	}, w.Range())
-	w.updateMu.Unlock()
 }
 
 // neighbourUpdate represents a position that needs to be updated because of a neighbour that changed.
@@ -1044,16 +1031,10 @@ func (w *World) removeWorldViewer(l *Loader) {
 // addViewer adds a viewer to the World at a given position. Any events that happen in the chunk at that
 // position, such as block changes, entity changes etc., will be sent to the viewer.
 func (w *World) addViewer(c *chunkData, loader *Loader) {
-	if w == nil {
-		return
-	}
 	c.v = append(c.v, loader.viewer)
 	c.l = append(c.l, loader)
 
-	entities := slices.Clone(c.entities)
-	c.Unlock()
-
-	for _, entity := range entities {
+	for _, entity := range c.entities {
 		showEntity(entity, loader.viewer)
 	}
 }
@@ -1061,10 +1042,7 @@ func (w *World) addViewer(c *chunkData, loader *Loader) {
 // removeViewer removes a viewer from the World at a given position. All entities will be hidden from the
 // viewer and no more calls will be made when events in the chunk happen.
 func (w *World) removeViewer(pos ChunkPos, loader *Loader) {
-	if w == nil {
-		return
-	}
-	c, ok := w.chunkFromCache(pos)
+	c, ok := w.chunks[pos]
 	if !ok {
 		return
 	}
@@ -1072,11 +1050,8 @@ func (w *World) removeViewer(pos ChunkPos, loader *Loader) {
 		c.v = slices.Delete(c.v, i, i+1)
 		c.l = slices.Delete(c.l, i, i+1)
 	}
-	e := slices.Clone(c.entities)
-	c.Unlock()
-
 	// After removing the loader from the chunk, we also need to hide all entities from the viewer.
-	for _, entity := range e {
+	for _, entity := range c.entities {
 		loader.viewer.HideEntity(entity)
 	}
 }
@@ -1090,22 +1065,7 @@ func (w *World) provider() Provider {
 // Handler returns the Handler of the World. It should always be used, rather than direct field access, in
 // order to provide synchronisation safety.
 func (w *World) Handler() Handler {
-	if w == nil {
-		return NopHandler{}
-	}
 	return w.handler.Load()
-}
-
-// chunkFromCache attempts to fetch a chunk at the chunk position passed from the cache. If not found, the
-// chunk returned is nil and false is returned.
-func (w *World) chunkFromCache(pos ChunkPos) (*chunkData, bool) {
-	w.chunkMu.Lock()
-	c, ok := w.chunks[pos]
-	w.chunkMu.Unlock()
-	if ok {
-		c.Lock()
-	}
-	return c, ok
 }
 
 // showEntity shows an entity to a viewer of the World. It makes sure everything of the entity, including the
@@ -1204,15 +1164,9 @@ func (w *World) spreadLight(pos ChunkPos) {
 			chunks = append(chunks, neighbour.Chunk)
 		}
 	}
-	for _, neighbour := range chunks {
-		neighbour.Lock()
-	}
 	// All chunks of the current one are present, so we can spread the light from this chunk
 	// to all chunks.
 	chunk.LightArea(chunks, int(pos[0])-1, int(pos[1])-1).Spread()
-	for _, neighbour := range chunks {
-		neighbour.Unlock()
-	}
 }
 
 // loadIntoBlocks loads the block entity data passed into blocks located in a specific chunk. The blocks that
@@ -1238,7 +1192,6 @@ func (w *World) loadIntoBlocks(c *chunkData, blockEntityData []map[string]any) {
 // saveChunk is called when a chunk is removed from the cache. We first compact the chunk, then we write it to
 // the provider.
 func (w *World) saveChunk(pos ChunkPos, c *chunkData) {
-	c.Lock()
 	if !w.conf.ReadOnly {
 		if len(c.e) > 0 || c.m {
 			c.Compact()
@@ -1269,13 +1222,10 @@ func (w *World) saveChunk(pos ChunkPos, c *chunkData) {
 			w.conf.Log.Errorf("error saving entities in chunk %v to provider: %v", pos, err)
 		}
 	}
-	ent := c.entities
-	c.entities = nil
-	c.Unlock()
-
-	for _, e := range ent {
+	for _, e := range c.entities {
 		_ = e.Close()
 	}
+	c.entities = nil
 }
 
 // chunkCacheJanitor runs until the World is running, cleaning chunks that are no longer in use from the cache.
@@ -1284,28 +1234,16 @@ func (w *World) chunkCacheJanitor() {
 	defer t.Stop()
 
 	w.running.Add(1)
-	chunksToRemove := map[ChunkPos]*chunkData{}
 	for {
 		select {
 		case <-t.C:
-			w.chunkMu.Lock()
 			for pos, c := range w.chunks {
-				c.Lock()
-				v := len(c.v)
-				c.Unlock()
-				if v == 0 {
-					chunksToRemove[pos] = c
+				if len(c.v) == 0 {
+					// TODO: Put all this stuff in a transaction. Also consider
+					//  moving saveChunk to a separate goroutine.
+					w.saveChunk(pos, c)
 					delete(w.chunks, pos)
-					if w.lastPos == pos {
-						w.lastChunk = nil
-					}
 				}
-			}
-			w.chunkMu.Unlock()
-
-			for pos, c := range chunksToRemove {
-				w.saveChunk(pos, c)
-				delete(chunksToRemove, pos)
 			}
 		case <-w.closing:
 			w.running.Done()
@@ -1327,22 +1265,16 @@ type chunkData struct {
 
 // BlockEntities returns the block entities of the chunk.
 func (c *chunkData) BlockEntities() map[cube.Pos]Block {
-	c.Lock()
-	defer c.Unlock()
 	return maps.Clone(c.e)
 }
 
 // Viewers returns the viewers of the chunk.
 func (c *chunkData) Viewers() []Viewer {
-	c.Lock()
-	defer c.Unlock()
 	return slices.Clone(c.v)
 }
 
 // Entities returns the entities of the chunk.
 func (c *chunkData) Entities() []Entity {
-	c.Lock()
-	defer c.Unlock()
 	return slices.Clone(c.entities)
 }
 

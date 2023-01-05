@@ -20,10 +20,10 @@ func (w weather) StartWeatherCycle() {
 	w.enableWeatherCycle(true)
 }
 
-// SnowingAt checks if it is snowing at a specific cube.Pos in the World. True is returned if the temperature in the
+// snowingAt checks if it is snowing at a specific cube.Pos in the World. True is returned if the temperature in the
 // biome at that position is sufficiently low, if it is raining and if it's above the top-most obstructing block.
-func (w weather) SnowingAt(pos cube.Pos) bool {
-	if w.w == nil || !w.w.Dimension().WeatherCycle() {
+func (w weather) snowingAt(pos cube.Pos) bool {
+	if !w.w.Dimension().WeatherCycle() {
 		return false
 	}
 	if b := w.w.biome(pos); b.Rainfall() == 0 || w.w.temperature(pos) > 0.15 {
@@ -39,7 +39,7 @@ func (w weather) SnowingAt(pos cube.Pos) bool {
 // temperature is high enough in the biome for it not to be snow and if the block is above the top-most obstructing
 // block.
 func (w weather) rainingAt(pos cube.Pos) bool {
-	if w.w == nil || !w.w.Dimension().WeatherCycle() {
+	if !w.w.Dimension().WeatherCycle() {
 		return false
 	}
 	if b := w.w.biome(pos); b.Rainfall() == 0 || w.w.temperature(pos) <= 0.15 {
@@ -51,9 +51,9 @@ func (w weather) rainingAt(pos cube.Pos) bool {
 	return a && w.w.highestObstructingBlock(pos[0], pos[2]) < pos[1]
 }
 
-// ThunderingAt checks if it is thundering at a specific cube.Pos in the World. True is returned if rainingAt returns
+// thunderingAt checks if it is thundering at a specific cube.Pos in the World. True is returned if rainingAt returns
 // true and if it is thundering in the World.
-func (w weather) ThunderingAt(pos cube.Pos) bool {
+func (w weather) thunderingAt(pos cube.Pos) bool {
 	raining := w.rainingAt(pos)
 	w.w.set.Lock()
 	a := w.w.set.Thundering && raining
@@ -156,7 +156,6 @@ func (w weather) enableWeatherCycle(v bool) {
 
 // tickLightning iterates over all loaded chunks in the World, striking lightning in each one with a 1/100,000 chance.
 func (w weather) tickLightning() {
-	w.w.chunkMu.Lock()
 	positions := make([]ChunkPos, 0, len(w.w.chunks)/100000)
 	for pos := range w.w.chunks {
 		// Wiki: For each loaded chunk, every tick there is a 1⁄100,000 chance of an attempted lightning strike
@@ -165,7 +164,6 @@ func (w weather) tickLightning() {
 			positions = append(positions, pos)
 		}
 	}
-	w.w.chunkMu.Unlock()
 
 	for _, pos := range positions {
 		w.w.strikeLightning(pos)
@@ -176,7 +174,7 @@ func (w weather) tickLightning() {
 // living entities that might be near the lightning strike. If there is no rain at the final position selected, the
 // lightning strike will fail.
 func (w weather) strikeLightning(c ChunkPos) {
-	if pos := w.lightningPosition(c); w.ThunderingAt(cube.PosFromVec3(pos)) {
+	if pos := w.lightningPosition(c); w.thunderingAt(cube.PosFromVec3(pos)) {
 		w.w.addEntity(w.w.conf.Entities.conf.Lightning(pos))
 	}
 }
@@ -186,9 +184,11 @@ func (w weather) strikeLightning(c ChunkPos) {
 func (w weather) lightningPosition(c ChunkPos) mgl64.Vec3 {
 	v := w.w.r.Int31()
 	x, z := float64(c[0]<<4+(v&0xf)), float64(c[1]<<4+((v>>8)&0xf))
+	// Create a temporary transaction, because the FaceSolid method needs one.
+	txn := &Txn{w: w.w}
 
 	vec := w.adjustPositionToEntities(mgl64.Vec3{x, float64(w.w.highestBlock(int(x), int(z)) + 1), z})
-	if pos := cube.PosFromVec3(vec); len(w.w.block(pos).Model().BBox(pos, w)) != 0 {
+	if pos := cube.PosFromVec3(vec); len(w.w.block(pos).Model().BBox(pos, txn)) != 0 {
 		// If lightning is about to strike inside a block that is not fully transparent. In this case, move the
 		// lightning up by one block so that it strikes above the block.
 		return vec.Add(mgl64.Vec3{0, 1})

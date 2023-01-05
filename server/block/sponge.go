@@ -113,7 +113,7 @@ func (s Sponge) absorbWater(pos cube.Pos, w *world.Txn) int {
 					}
 				}
 			}
-		}, w.World().Range())
+		}, w.Range())
 	}
 
 	return replaced

@@ -20,7 +20,7 @@ type Result interface {
 // Perform performs a ray trace between start and end, checking if any blocks or entities collided with the
 // ray. The physics.BBox that's passed is used for checking if any entity within the bounding box collided
 // with the ray.
-func Perform(start, end mgl64.Vec3, w *world.World, box cube.BBox, ignored func(world.Entity) bool) (hit Result, ok bool) {
+func Perform(start, end mgl64.Vec3, w *world.Txn, box cube.BBox, ignored func(world.Entity) bool) (hit Result, ok bool) {
 	// Check if there's any blocks that we may collide with.
 	TraverseBlocks(start, end, func(pos cube.Pos) (cont bool) {
 		b := w.Block(pos)
@@ -37,7 +37,7 @@ func Perform(start, end mgl64.Vec3, w *world.World, box cube.BBox, ignored func(
 	// Now check for any entities that we may collide with.
 	dist := math.MaxFloat64
 	bb := box.Translate(start).Extend(end.Sub(start))
-	for _, entity := range w.entitiesWithin(bb.Grow(8.0), ignored) {
+	for _, entity := range w.EntitiesWithin(bb.Grow(8.0), ignored) {
 		if ignored != nil && ignored(entity) || !entity.Type().BBox(entity).Translate(entity.Position()).IntersectsWith(bb) {
 			continue
 		}

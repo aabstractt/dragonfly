@@ -80,7 +80,7 @@ func (c Coral) ScheduledTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 				adjacentWater = true
 			}
 		}
-	}, w.World().Range())
+	}, w.Range())
 	if !adjacentWater {
 		c.Dead = true
 		w.SetBlock(pos, c, nil)
