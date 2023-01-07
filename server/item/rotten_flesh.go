@@ -13,7 +13,7 @@ type RottenFlesh struct {
 }
 
 // Consume ...
-func (RottenFlesh) Consume(w *world.Txn, c Consumer) Stack {
+func (RottenFlesh) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(4, 0.8)
 	if rand.Float64() < 0.8 {
 		c.AddEffect(effect.New(effect.Hunger{}, 1, 30*time.Second))

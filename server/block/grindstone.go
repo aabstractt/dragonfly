@@ -26,7 +26,7 @@ func (g Grindstone) BreakInfo() BreakInfo {
 }
 
 // Activate ...
-func (g Grindstone) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
+func (g Grindstone) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Tx, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		opener.OpenBlockContainer(pos)
 		return true
@@ -35,7 +35,7 @@ func (g Grindstone) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, 
 }
 
 // UseOnBlock ...
-func (g Grindstone) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (g Grindstone) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, face, used = firstReplaceable(w, pos, face, g)
 	if !used {
 		return false
@@ -52,7 +52,7 @@ func (g Grindstone) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3
 }
 
 // NeighbourUpdateTick ...
-func (g Grindstone) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (g Grindstone) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	supportFace := g.Facing.Face().Opposite()
 	if g.Attach == HangingGrindstoneAttachment() {
 		supportFace = cube.FaceUp

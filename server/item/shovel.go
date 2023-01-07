@@ -16,7 +16,7 @@ type Shovel struct {
 }
 
 // UseOnBlock handles the creation of dirt path blocks from dirt or grass blocks.
-func (s Shovel) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
+func (s Shovel) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user User, ctx *UseContext) bool {
 	if b, ok := w.block(pos).(shovellable); ok {
 		if res, ok := b.Shovel(); ok {
 			if face == cube.FaceDown {

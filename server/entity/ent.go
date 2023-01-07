@@ -156,7 +156,7 @@ func (e *Ent) Extinguish() {
 
 // Tick ticks Ent, progressing its lifetime and closing the entity if it is
 // in the void.
-func (e *Ent) Tick(w *world.Txn, current int64) {
+func (e *Ent) Tick(w *world.Tx, current int64) {
 	e.mu.Lock()
 	y := e.pos[1]
 	e.mu.Unlock()

@@ -11,7 +11,7 @@ type Beef struct {
 }
 
 // Consume ...
-func (b Beef) Consume(w *world.Txn, c Consumer) Stack {
+func (b Beef) Consume(w *world.Tx, c Consumer) Stack {
 	if b.Cooked {
 		c.Saturate(8, 12.8)
 	} else {

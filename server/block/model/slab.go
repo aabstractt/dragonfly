@@ -15,7 +15,7 @@ type Slab struct {
 
 // BBox returns either a physics.BBox spanning a full block or a half block in the top/bottom part of the block,
 // depending on the Double and Top fields.
-func (s Slab) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (s Slab) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	if s.Double {
 		return []cube.BBox{full}
 	}
@@ -27,7 +27,7 @@ func (s Slab) BBox(cube.Pos, *world.Txn) []cube.BBox {
 
 // FaceSolid returns true if the Slab is double, or if the face is cube.FaceUp when the Top field is true, or if the
 // face is cube.FaceDown when the Top field is false.
-func (s Slab) FaceSolid(pos cube.Pos, face cube.Face, w *world.Txn) bool {
+func (s Slab) FaceSolid(pos cube.Pos, face cube.Face, w *world.Tx) bool {
 	if s.Double {
 		return true
 	} else if s.Top {

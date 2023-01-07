@@ -13,7 +13,7 @@ type PoisonousPotato struct {
 }
 
 // Consume ...
-func (p PoisonousPotato) Consume(w *world.Txn, c Consumer) Stack {
+func (p PoisonousPotato) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(2, 1.2)
 	if rand.Float64() < 0.6 {
 		c.AddEffect(effect.New(effect.Poison{}, 1, 5*time.Second))

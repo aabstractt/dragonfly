@@ -32,13 +32,13 @@ func (c Carrot) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (c Carrot) Consume(_ *world.Txn, cons item.Consumer) item.Stack {
+func (c Carrot) Consume(_ *world.Tx, cons item.Consumer) item.Stack {
 	cons.Saturate(3, 3.6)
 	return item.Stack{}
 }
 
 // BoneMeal ...
-func (c Carrot) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (c Carrot) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	if c.Growth == 7 {
 		return false
 	}
@@ -48,7 +48,7 @@ func (c Carrot) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 }
 
 // UseOnBlock ...
-func (c Carrot) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (c Carrot) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, c)
 	if !used {
 		return false
@@ -83,7 +83,7 @@ func (c Carrot) EncodeItem() (name string, meta int16) {
 }
 
 // RandomTick ...
-func (c Carrot) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (c Carrot) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if w.Light(pos) < 8 {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: c})

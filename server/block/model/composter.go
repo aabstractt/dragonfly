@@ -14,7 +14,7 @@ type Composter struct {
 }
 
 // BBox ...
-func (c Composter) BBox(pos cube.Pos, w *world.Txn) []cube.BBox {
+func (c Composter) BBox(pos cube.Pos, w *world.Tx) []cube.BBox {
 	compostHeight := math.Abs(math.Min(float64(c.Level), 7)*0.125 - 0.0625)
 	return []cube.BBox{
 		cube.Box(0, 0, 0, 1, 1, 0.125),
@@ -26,6 +26,6 @@ func (c Composter) BBox(pos cube.Pos, w *world.Txn) []cube.BBox {
 }
 
 // FaceSolid returns true for all faces other than the top.
-func (Composter) FaceSolid(pos cube.Pos, face cube.Face, w *world.Txn) bool {
+func (Composter) FaceSolid(pos cube.Pos, face cube.Face, w *world.Tx) bool {
 	return face != cube.FaceUp
 }

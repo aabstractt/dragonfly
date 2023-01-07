@@ -32,7 +32,7 @@ func flammableBlock(block world.Block) bool {
 }
 
 // neighboursFlammable returns true if one a block adjacent to the passed position is flammable.
-func neighboursFlammable(pos cube.Pos, w *world.Txn) bool {
+func neighboursFlammable(pos cube.Pos, w *world.Tx) bool {
 	for _, i := range cube.Faces() {
 		if flammableBlock(w.Block(pos.Side(i))) {
 			return true
@@ -50,7 +50,7 @@ func max(a, b int) int {
 }
 
 // infinitelyBurning returns true if fire can infinitely burn at the specified position.
-func infinitelyBurning(pos cube.Pos, w *world.Txn) bool {
+func infinitelyBurning(pos cube.Pos, w *world.Tx) bool {
 	switch block := w.Block(pos.Side(cube.FaceDown)).(type) {
 	// TODO: Magma block
 	case Netherrack:
@@ -62,7 +62,7 @@ func infinitelyBurning(pos cube.Pos, w *world.Txn) bool {
 }
 
 // burn attempts to burn a block.
-func (f Fire) burn(from, to cube.Pos, w *world.Txn, r *rand.Rand, chanceBound int) {
+func (f Fire) burn(from, to cube.Pos, w *world.Tx, r *rand.Rand, chanceBound int) {
 	if flammable, ok := w.Block(to).(Flammable); ok && r.Intn(chanceBound) < flammable.FlammabilityInfo().Flammability {
 		if r.Intn(f.Age+10) < 5 && !rainingAround(to, w) {
 			f.spread(from, to, w, r)
@@ -77,7 +77,7 @@ func (f Fire) burn(from, to cube.Pos, w *world.Txn, r *rand.Rand, chanceBound in
 }
 
 // rainingAround checks if it is raining either at the cube.Pos passed or at any of its horizontal neighbours.
-func rainingAround(pos cube.Pos, w *world.Txn) bool {
+func rainingAround(pos cube.Pos, w *world.Tx) bool {
 	raining := w.RainingAt(pos)
 	for _, face := range cube.HorizontalFaces() {
 		if raining {
@@ -89,7 +89,7 @@ func rainingAround(pos cube.Pos, w *world.Txn) bool {
 }
 
 // tick ...
-func (f Fire) tick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (f Fire) tick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if f.Type == SoulFire() {
 		return
 	}
@@ -181,7 +181,7 @@ func (f Fire) tick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 
 // spread attempts to spread fire from a cube.Pos to another. If the block burn or fire spreading events are cancelled,
 // this might end up not happening.
-func (f Fire) spread(from, to cube.Pos, w *world.Txn, r *rand.Rand) {
+func (f Fire) spread(from, to cube.Pos, w *world.Tx, r *rand.Rand) {
 	if _, air := w.Block(to).(Air); !air {
 		ctx := event.C()
 		if w.World().Handler().HandleBlockBurn(ctx, to); ctx.Cancelled() {
@@ -197,7 +197,7 @@ func (f Fire) spread(from, to cube.Pos, w *world.Txn, r *rand.Rand) {
 }
 
 // EntityInside ...
-func (f Fire) EntityInside(pos cube.Pos, w *world.Txn, e world.Entity) {
+func (f Fire) EntityInside(pos cube.Pos, w *world.Tx, e world.Entity) {
 	if flammable, ok := e.(flammableEntity); ok {
 		if l, ok := e.(livingEntity); ok && !l.AttackImmune() {
 			l.Hurt(f.Type.Damage(), FireDamageSource{})
@@ -209,17 +209,17 @@ func (f Fire) EntityInside(pos cube.Pos, w *world.Txn, e world.Entity) {
 }
 
 // ScheduledTick ...
-func (f Fire) ScheduledTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (f Fire) ScheduledTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	f.tick(pos, w, r)
 }
 
 // RandomTick ...
-func (f Fire) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (f Fire) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	f.tick(pos, w, r)
 }
 
 // NeighbourUpdateTick ...
-func (f Fire) NeighbourUpdateTick(pos, neighbour cube.Pos, w *world.Txn) {
+func (f Fire) NeighbourUpdateTick(pos, neighbour cube.Pos, w *world.Tx) {
 	below := w.Block(pos.Side(cube.FaceDown))
 	if diffuser, ok := below.(LightDiffuser); (ok && diffuser.LightDiffusionLevel() != 15) && (!neighboursFlammable(pos, w) || f.Type == SoulFire()) {
 		w.SetBlock(pos, nil, nil)
@@ -264,7 +264,7 @@ func (f Fire) EncodeBlock() (name string, properties map[string]any) {
 
 // Start starts a fire at a position in the world. The position passed must be either air or tall grass and conditions
 // for a fire to be present must be present.
-func (f Fire) Start(w *world.Txn, pos cube.Pos) {
+func (f Fire) Start(w *world.Tx, pos cube.Pos) {
 	b := w.Block(pos)
 	_, air := b.(Air)
 	_, tallGrass := b.(TallGrass)

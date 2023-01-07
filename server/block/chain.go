@@ -18,12 +18,12 @@ type Chain struct {
 }
 
 // SideClosed ...
-func (Chain) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (Chain) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 
 // UseOnBlock ...
-func (c Chain) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (c Chain) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, face, used = firstReplaceable(w, pos, face, c)
 	if !used {
 		return

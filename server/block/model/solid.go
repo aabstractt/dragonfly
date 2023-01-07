@@ -13,11 +13,11 @@ type Solid struct{}
 var full = cube.Box(0, 0, 0, 1, 1, 1)
 
 // BBox returns a physics.BBox spanning a full block.
-func (Solid) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (Solid) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	return []cube.BBox{full}
 }
 
 // FaceSolid always returns true.
-func (Solid) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
+func (Solid) FaceSolid(cube.Pos, cube.Face, *world.Tx) bool {
 	return true
 }

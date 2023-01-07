@@ -18,7 +18,7 @@ func (n NetherBrickFence) BreakInfo() BreakInfo {
 }
 
 // SideClosed ...
-func (NetherBrickFence) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (NetherBrickFence) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 

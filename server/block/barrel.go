@@ -62,21 +62,21 @@ func (b Barrel) WithName(a ...any) world.Item {
 }
 
 // open opens the barrel, displaying the animation and playing a sound.
-func (b Barrel) open(w *world.Txn, pos cube.Pos) {
+func (b Barrel) open(w *world.Tx, pos cube.Pos) {
 	b.Open = true
 	w.PlaySound(pos.Vec3Centre(), sound.BarrelOpen{})
 	w.SetBlock(pos, b, nil)
 }
 
 // close closes the barrel, displaying the animation and playing a sound.
-func (b Barrel) close(w *world.Txn, pos cube.Pos) {
+func (b Barrel) close(w *world.Tx, pos cube.Pos) {
 	b.Open = false
 	w.PlaySound(pos.Vec3Centre(), sound.BarrelClose{})
 	w.SetBlock(pos, b, nil)
 }
 
 // AddViewer adds a viewer to the barrel, so that it is updated whenever the inventory of the barrel is changed.
-func (b Barrel) AddViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
+func (b Barrel) AddViewer(v ContainerViewer, w *world.Tx, pos cube.Pos) {
 	b.viewerMu.Lock()
 	defer b.viewerMu.Unlock()
 	if len(b.viewers) == 0 {
@@ -87,7 +87,7 @@ func (b Barrel) AddViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
 
 // RemoveViewer removes a viewer from the barrel, so that slot updates in the inventory are no longer sent to
 // it.
-func (b Barrel) RemoveViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
+func (b Barrel) RemoveViewer(v ContainerViewer, w *world.Tx, pos cube.Pos) {
 	b.viewerMu.Lock()
 	defer b.viewerMu.Unlock()
 	if len(b.viewers) == 0 {
@@ -100,7 +100,7 @@ func (b Barrel) RemoveViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
 }
 
 // Activate ...
-func (b Barrel) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
+func (b Barrel) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Tx, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		opener.OpenBlockContainer(pos)
 		return true
@@ -109,7 +109,7 @@ func (b Barrel) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u it
 }
 
 // UseOnBlock ...
-func (b Barrel) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (b Barrel) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, b)
 	if !used {
 		return

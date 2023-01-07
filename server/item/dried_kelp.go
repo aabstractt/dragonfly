@@ -19,7 +19,7 @@ func (DriedKelp) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (DriedKelp) Consume(w *world.Txn, c Consumer) Stack {
+func (DriedKelp) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(1, 0.2)
 	return Stack{}
 }

@@ -8,7 +8,7 @@ type Bread struct {
 }
 
 // Consume ...
-func (Bread) Consume(w *world.Txn, c Consumer) Stack {
+func (Bread) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(5, 6)
 	return Stack{}
 }

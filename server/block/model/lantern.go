@@ -12,7 +12,7 @@ type Lantern struct {
 }
 
 // BBox returns a physics.BBox attached to either the ceiling or to the ground.
-func (l Lantern) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (l Lantern) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	if l.Hanging {
 		return []cube.BBox{cube.Box(0.3125, 0.125, 0.3125, 0.6875, 0.625, 0.6875)}
 	}
@@ -20,6 +20,6 @@ func (l Lantern) BBox(cube.Pos, *world.Txn) []cube.BBox {
 }
 
 // FaceSolid always returns false.
-func (l Lantern) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
+func (l Lantern) FaceSolid(cube.Pos, cube.Face, *world.Tx) bool {
 	return false
 }

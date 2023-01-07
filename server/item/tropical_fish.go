@@ -8,7 +8,7 @@ type TropicalFish struct {
 }
 
 // Consume ...
-func (TropicalFish) Consume(w *world.Txn, c Consumer) Stack {
+func (TropicalFish) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(1, 0.2)
 	return Stack{}
 }

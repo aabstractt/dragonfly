@@ -28,7 +28,7 @@ func (p Potion) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (p Potion) Consume(w *world.Txn, c Consumer) Stack {
+func (p Potion) Consume(w *world.Tx, c Consumer) Stack {
 	for _, effect := range p.Type.Effects() {
 		c.AddEffect(effect)
 	}

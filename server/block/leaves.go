@@ -24,7 +24,7 @@ type Leaves struct {
 }
 
 // UseOnBlock makes leaves persistent when they are placed so that they don't decay.
-func (l Leaves) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (l Leaves) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, l)
 	if !used {
 		return
@@ -36,7 +36,7 @@ func (l Leaves) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w 
 }
 
 // findLog ...
-func findLog(pos cube.Pos, w *world.Txn, visited *[]cube.Pos, distance int) bool {
+func findLog(pos cube.Pos, w *world.Tx, visited *[]cube.Pos, distance int) bool {
 	for _, v := range *visited {
 		if v == pos {
 			return false
@@ -60,7 +60,7 @@ func findLog(pos cube.Pos, w *world.Txn, visited *[]cube.Pos, distance int) bool
 }
 
 // RandomTick ...
-func (l Leaves) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (l Leaves) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if !l.Persistent && l.ShouldUpdate {
 		if findLog(pos, w, &[]cube.Pos{}, 0) {
 			l.ShouldUpdate = false
@@ -72,7 +72,7 @@ func (l Leaves) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 }
 
 // NeighbourUpdateTick ...
-func (l Leaves) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (l Leaves) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if !l.Persistent && !l.ShouldUpdate {
 		l.ShouldUpdate = true
 		w.SetBlock(pos, l, nil)
@@ -124,7 +124,7 @@ func (Leaves) LightDiffusionLevel() uint8 {
 }
 
 // SideClosed ...
-func (Leaves) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (Leaves) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 

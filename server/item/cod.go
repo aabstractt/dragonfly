@@ -11,7 +11,7 @@ type Cod struct {
 }
 
 // Consume ...
-func (c Cod) Consume(w *world.Txn, c Consumer) Stack {
+func (c Cod) Consume(w *world.Tx, c Consumer) Stack {
 	if c.Cooked {
 		co.Saturate(5, 6)
 	} else {

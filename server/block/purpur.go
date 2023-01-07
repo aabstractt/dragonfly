@@ -39,7 +39,7 @@ func (p Purpur) EncodeBlock() (name string, properties map[string]interface{}) {
 }
 
 // UseOnBlock ...
-func (p PurpurPillar) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (p PurpurPillar) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, face, used = firstReplaceable(w, pos, face, p)
 	if !used {
 		return

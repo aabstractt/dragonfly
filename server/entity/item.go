@@ -60,7 +60,7 @@ func (it *Item) SetPickupDelay(d time.Duration) {
 }
 
 // Tick ticks the entity, performing movement.
-func (it *Item) Tick(w *world.Txn, current int64) {
+func (it *Item) Tick(w *world.Tx, current int64) {
 	it.mu.Lock()
 	m := it.c.TickMovement(it, it.pos, it.vel, 0, 0)
 	it.pos, it.vel = m.pos, m.vel

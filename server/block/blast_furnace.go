@@ -34,7 +34,7 @@ func NewBlastFurnace(face cube.Face) BlastFurnace {
 }
 
 // Tick is called to check if the blast furnace should update and start or stop smelting.
-func (b BlastFurnace) Tick(currentTick int64, pos cube.Pos, w *world.Txn) {
+func (b BlastFurnace) Tick(currentTick int64, pos cube.Pos, w *world.Tx) {
 	if b.Lit && rand.Float64() <= 0.016 { // Every three or so seconds.
 		w.PlaySound(pos.Vec3Centre(), sound.BlastFurnaceCrackle{})
 	}
@@ -60,7 +60,7 @@ func (b BlastFurnace) EncodeBlock() (name string, properties map[string]interfac
 }
 
 // UseOnBlock ...
-func (b BlastFurnace) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (b BlastFurnace) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, b)
 	if !used {
 		return false
@@ -77,7 +77,7 @@ func (b BlastFurnace) BreakInfo() BreakInfo {
 }
 
 // Activate ...
-func (b BlastFurnace) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
+func (b BlastFurnace) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Tx, u item.User, ctx *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
 		opener.OpenBlockContainer(pos)
 		return true

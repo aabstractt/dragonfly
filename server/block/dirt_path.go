@@ -17,7 +17,7 @@ func (p DirtPath) Till() (world.Block, bool) {
 }
 
 // NeighbourUpdateTick handles the turning from dirt path into dirt if a block is placed on top of it.
-func (p DirtPath) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (p DirtPath) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	up := pos.Side(cube.FaceUp)
 	if w.Block(up).Model().FaceSolid(up, cube.FaceDown, w) {
 		// A block with a solid side at the bottom was placed onto this one.

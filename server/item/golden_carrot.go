@@ -9,7 +9,7 @@ type GoldenCarrot struct {
 }
 
 // Consume ...
-func (GoldenCarrot) Consume(w *world.Txn, c Consumer) Stack {
+func (GoldenCarrot) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(6, 14.4)
 	return Stack{}
 }

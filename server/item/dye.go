@@ -13,7 +13,7 @@ type Dye struct {
 }
 
 // UseOnBlock implements the colouring behaviour of signs.
-func (d Dye) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
+func (d Dye) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user User, ctx *UseContext) bool {
 	if dy, ok := w.block(pos).(dyeable); ok {
 		if res, ok := dy.Dye(d.Colour); ok {
 			w.setBlock(pos, res, nil)

@@ -514,7 +514,7 @@ func (srv *Server) parseSkin(data login.ClientData) skin.Skin {
 // connected and all entities in the server's world.
 func (srv *Server) registerTargetFunc() {
 	cmd.AddTargetFunc(func(src cmd.Source) (entities []cmd.Target, players []cmd.NamedTarget) {
-		return sliceutil.Convert[cmd.Target](src.World().Entities()), sliceutil.Convert[cmd.NamedTarget](srv.Players())
+		return sliceutil.Convert[cmd.Target](src.World().entities()), sliceutil.Convert[cmd.NamedTarget](srv.Players())
 	})
 }
 

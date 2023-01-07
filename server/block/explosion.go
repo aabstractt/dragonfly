@@ -45,7 +45,7 @@ type ExplodableEntity interface {
 // Explodable represents a block that can be exploded.
 type Explodable interface {
 	// Explode is called when an explosion occurs. The block can react to the explosion using the configuration passed.
-	Explode(explosionPos mgl64.Vec3, pos cube.Pos, w *world.Txn, c ExplosionConfig)
+	Explode(explosionPos mgl64.Vec3, pos cube.Pos, w *world.Tx, c ExplosionConfig)
 }
 
 // rays ...
@@ -66,7 +66,7 @@ func init() {
 }
 
 // Explode performs the explosion as specified by the configuration.
-func (c ExplosionConfig) Explode(w *world.Txn, explosionPos mgl64.Vec3) {
+func (c ExplosionConfig) Explode(w *world.Tx, explosionPos mgl64.Vec3) {
 	if c.Sound == nil {
 		c.Sound = sound.Explosion{}
 	}
@@ -156,7 +156,7 @@ func (c ExplosionConfig) Explode(w *world.Txn, explosionPos mgl64.Vec3) {
 }
 
 // exposure returns the exposure of an explosion to an entity, used to calculate the impact of an explosion.
-func exposure(origin mgl64.Vec3, e world.Entity, txn *world.Txn) float64 {
+func exposure(origin mgl64.Vec3, e world.Entity, txn *world.Tx) float64 {
 	pos := e.Position()
 	box := e.Type().BBox(e).Translate(pos)
 

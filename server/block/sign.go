@@ -38,7 +38,7 @@ type Sign struct {
 }
 
 // SideClosed ...
-func (s Sign) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (s Sign) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 
@@ -97,7 +97,7 @@ func (s Sign) EditableBy(editor SignEditor) bool {
 }
 
 // UseOnBlock ...
-func (s Sign) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (s Sign) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, face, used = firstReplaceable(w, pos, face, s)
 	if !used || face == cube.FaceDown {
 		return false
@@ -118,7 +118,7 @@ func (s Sign) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *w
 }
 
 // NeighbourUpdateTick ...
-func (s Sign) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (s Sign) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if s.Attach.hanging {
 		if _, ok := w.Block(pos.Side(s.Attach.facing.Opposite().Face())).(Air); ok {
 			w.SetBlock(pos, nil, nil)

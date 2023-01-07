@@ -18,13 +18,13 @@ type ConcretePowder struct {
 }
 
 // Solidifies ...
-func (c ConcretePowder) Solidifies(pos cube.Pos, w *world.Txn) bool {
+func (c ConcretePowder) Solidifies(pos cube.Pos, w *world.Tx) bool {
 	_, water := w.Block(pos).(Water)
 	return water
 }
 
 // NeighbourUpdateTick ...
-func (c ConcretePowder) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (c ConcretePowder) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	for i := cube.Face(0); i < 6; i++ {
 		if _, ok := w.Block(pos.Side(i)).(Water); ok {
 			w.SetBlock(pos, Concrete{Colour: c.Colour}, nil)

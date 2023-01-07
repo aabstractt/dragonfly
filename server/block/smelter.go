@@ -67,7 +67,7 @@ func (s *smelter) Inventory() *inventory.Inventory {
 }
 
 // AddViewer adds a viewer to the furnace, so that it is updated whenever the inventory of the furnace is changed.
-func (s *smelter) AddViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
+func (s *smelter) AddViewer(v ContainerViewer, w *world.Tx, pos cube.Pos) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.viewers[v] = struct{}{}
@@ -75,7 +75,7 @@ func (s *smelter) AddViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
 
 // RemoveViewer removes a viewer from the furnace, so that slot updates in the inventory are no longer sent to
 // it.
-func (s *smelter) RemoveViewer(v ContainerViewer, w *world.Txn, pos cube.Pos) {
+func (s *smelter) RemoveViewer(v ContainerViewer, w *world.Tx, pos cube.Pos) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if len(s.viewers) == 0 {

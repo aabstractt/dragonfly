@@ -19,7 +19,7 @@ type bottleFiller interface {
 }
 
 // UseOnBlock ...
-func (g GlassBottle) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
+func (g GlassBottle) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user User, ctx *UseContext) bool {
 	bl := w.block(pos)
 	if b, ok := bl.(bottleFiller); ok {
 		var res world.Block

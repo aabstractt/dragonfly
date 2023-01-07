@@ -19,7 +19,7 @@ type Cactus struct {
 }
 
 // UseOnBlock handles making sure the neighbouring blocks are air.
-func (c Cactus) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (c Cactus) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, c)
 	if !used {
 		return false
@@ -33,7 +33,7 @@ func (c Cactus) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w 
 }
 
 // NeighbourUpdateTick ...
-func (c Cactus) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (c Cactus) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if !c.canGrowHere(pos, w, true) {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: c})
@@ -42,7 +42,7 @@ func (c Cactus) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn
 }
 
 // RandomTick ...
-func (c Cactus) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (c Cactus) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if c.Age < 15 {
 		c.Age++
 	} else if c.Age == 15 {
@@ -62,7 +62,7 @@ func (c Cactus) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 }
 
 // canGrowHere implements logic to check if cactus can live/grow here.
-func (c Cactus) canGrowHere(pos cube.Pos, w *world.Txn, recursive bool) bool {
+func (c Cactus) canGrowHere(pos cube.Pos, w *world.Tx, recursive bool) bool {
 	for _, face := range cube.HorizontalFaces() {
 		if _, ok := w.Block(pos.Side(face)).(Air); !ok {
 			return false
@@ -75,7 +75,7 @@ func (c Cactus) canGrowHere(pos cube.Pos, w *world.Txn, recursive bool) bool {
 }
 
 // EntityInside ...
-func (c Cactus) EntityInside(pos cube.Pos, w *world.Txn, e world.Entity) {
+func (c Cactus) EntityInside(pos cube.Pos, w *world.Tx, e world.Entity) {
 	if l, ok := e.(livingEntity); ok && !l.AttackImmune() {
 		l.Hurt(0.5, DamageSource{Block: c})
 	}

@@ -8,7 +8,7 @@ type Cookie struct {
 }
 
 // Consume ...
-func (Cookie) Consume(w *world.Txn, c Consumer) Stack {
+func (Cookie) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(2, 0.4)
 	return Stack{}
 }

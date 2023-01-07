@@ -46,7 +46,7 @@ type Liquid interface {
 	LiquidType() string
 	// Harden checks if the block should harden when looking at the surrounding blocks and sets the position
 	// to the hardened block when adequate. If the block was hardened, the method returns true.
-	Harden(pos cube.Pos, w *Txn, flownIntoBy *cube.Pos) bool
+	Harden(pos cube.Pos, w *Tx, flownIntoBy *cube.Pos) bool
 }
 
 // hashes holds a list of runtime IDs indexed by the hash of the Block that implements the blocks pointed to by those
@@ -152,7 +152,7 @@ func air() Block {
 type RandomTicker interface {
 	// RandomTick handles a random tick of the block at the position passed. Additionally, a rand.Rand
 	// instance is passed which may be used to generate values randomly without locking.
-	RandomTick(pos cube.Pos, w *Txn, r *rand.Rand)
+	RandomTick(pos cube.Pos, w *Tx, r *rand.Rand)
 }
 
 // ScheduledTicker represents a block that executes an action when it has a block update scheduled, such as
@@ -161,14 +161,14 @@ type ScheduledTicker interface {
 	// ScheduledTick handles a scheduled tick initiated by an event in one of the neighbouring blocks, such as
 	// when a block is placed or broken. Additionally, a rand.Rand instance is passed which may be used to
 	// generate values randomly without locking.
-	ScheduledTick(pos cube.Pos, w *Txn, r *rand.Rand)
+	ScheduledTick(pos cube.Pos, w *Tx, r *rand.Rand)
 }
 
 // TickerBlock is an implementation of NBTer with an additional Tick method that is called on every World
 // tick for loaded blocks that implement this interface.
 type TickerBlock interface {
 	NBTer
-	Tick(currentTick int64, pos cube.Pos, w *Txn)
+	Tick(currentTick int64, pos cube.Pos, w *Tx)
 }
 
 // NeighbourUpdateTicker represents a block that is updated when a block adjacent to it is updated, either
@@ -176,7 +176,7 @@ type TickerBlock interface {
 type NeighbourUpdateTicker interface {
 	// NeighbourUpdateTick handles a neighbouring block being updated. The position of that block and the
 	// position of this block is passed.
-	NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *Txn)
+	NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *Tx)
 }
 
 // NBTer represents either an item or a block which may decode NBT data and encode to NBT data. Typically,
@@ -197,7 +197,7 @@ type LiquidDisplacer interface {
 	// SideClosed checks if a position on the side of the block placed in the World at a specific position is
 	// closed. When this returns true (for example, when the side is below the position and the block is a
 	// slab), liquid inside the displacer won't flow from pos into side.
-	SideClosed(pos, side cube.Pos, w *Txn) bool
+	SideClosed(pos, side cube.Pos, w *Tx) bool
 }
 
 // lightEmitter is identical to a block.LightEmitter.

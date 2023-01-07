@@ -10,11 +10,11 @@ import (
 type Chest struct{}
 
 // BBox returns a physics.BBox that is slightly smaller than a full block.
-func (Chest) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (Chest) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	return []cube.BBox{cube.Box(0.025, 0, 0.025, 0.975, 0.95, 0.975)}
 }
 
 // FaceSolid always returns false.
-func (Chest) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
+func (Chest) FaceSolid(cube.Pos, cube.Face, *world.Tx) bool {
 	return false
 }

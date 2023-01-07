@@ -15,7 +15,7 @@ type FenceGate struct {
 }
 
 // BBox returns up to one physics.BBox depending on the facing direction of the FenceGate and whether it is open.
-func (f FenceGate) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (f FenceGate) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	if f.Open {
 		return nil
 	}
@@ -23,6 +23,6 @@ func (f FenceGate) BBox(cube.Pos, *world.Txn) []cube.BBox {
 }
 
 // FaceSolid always returns false.
-func (f FenceGate) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
+func (f FenceGate) FaceSolid(cube.Pos, cube.Face, *world.Tx) bool {
 	return false
 }

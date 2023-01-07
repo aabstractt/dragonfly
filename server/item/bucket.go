@@ -78,7 +78,7 @@ func (b Bucket) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (b Bucket) Consume(w *world.Txn, c Consumer) Stack {
+func (b Bucket) Consume(w *world.Tx, c Consumer) Stack {
 	for _, effect := range c.Effects() {
 		c.RemoveEffect(effect.Type())
 	}
@@ -99,7 +99,7 @@ func (b Bucket) FuelInfo() FuelInfo {
 }
 
 // UseOnBlock handles the bucket filling and emptying logic.
-func (b Bucket) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
+func (b Bucket) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user User, ctx *UseContext) bool {
 	if b.Content.milk {
 		return false
 	}

@@ -37,13 +37,13 @@ func (p Potato) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (p Potato) Consume(w *world.Txn, c item.Consumer) item.Stack {
+func (p Potato) Consume(w *world.Tx, c item.Consumer) item.Stack {
 	c.Saturate(1, 0.6)
 	return item.Stack{}
 }
 
 // BoneMeal ...
-func (p Potato) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (p Potato) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	if p.Growth == 7 {
 		return false
 	}
@@ -53,7 +53,7 @@ func (p Potato) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 }
 
 // UseOnBlock ...
-func (p Potato) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (p Potato) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, p)
 	if !used {
 		return false
@@ -88,7 +88,7 @@ func (p Potato) EncodeItem() (name string, meta int16) {
 }
 
 // RandomTick ...
-func (p Potato) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (p Potato) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if w.Light(pos) < 8 {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: p})

@@ -26,7 +26,7 @@ func (GoatHorn) Cooldown() time.Duration {
 }
 
 // Use ...
-func (g GoatHorn) Use(w *world.Txn, user User, ctx *UseContext) bool {
+func (g GoatHorn) Use(w *world.Tx, user User, ctx *UseContext) bool {
 	w.PlaySound(u.Position(), sound.GoatHorn{Horn: g.Type})
 	time.AfterFunc(time.Second, func() {
 		if !u.UsingItem() {

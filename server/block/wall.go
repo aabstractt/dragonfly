@@ -83,7 +83,7 @@ func (w Wall) BreakInfo() BreakInfo {
 }
 
 // NeighbourUpdateTick ...
-func (w Wall) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, wo *world.Txn) {
+func (w Wall) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, wo *world.Tx) {
 	w, connectionsUpdated := w.calculateConnections(wo, pos)
 	w, postUpdated := w.calculatePost(wo, pos)
 	if connectionsUpdated || postUpdated {
@@ -92,7 +92,7 @@ func (w Wall) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, wo *world.Txn)
 }
 
 // UseOnBlock ...
-func (w Wall) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, wo *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (w Wall) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, wo *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(wo, pos, face, w)
 	if !used {
 		return
@@ -104,7 +104,7 @@ func (w Wall) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, wo *
 }
 
 // SideClosed ...
-func (Wall) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (Wall) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 
@@ -140,7 +140,7 @@ func (w Wall) WithConnectionType(direction cube.Direction, connection WallConnec
 
 // calculateConnections calculates the correct connections for the wall at a given position in a world. The updated wall
 // is returned and a bool to determine if any changes were made.
-func (w Wall) calculateConnections(wo *world.Txn, pos cube.Pos) (Wall, bool) {
+func (w Wall) calculateConnections(wo *world.Tx, pos cube.Pos) (Wall, bool) {
 	var updated bool
 	abovePos := pos.Add(cube.Pos{0, 1, 0})
 	above := wo.Block(abovePos)
@@ -198,7 +198,7 @@ func (w Wall) calculateConnections(wo *world.Txn, pos cube.Pos) (Wall, bool) {
 
 // calculatePost calculates the correct post bit for the wall at a given position in a world. The updated wall is
 // returned and a bool to determine if any changes were made.
-func (w Wall) calculatePost(wo *world.Txn, pos cube.Pos) (Wall, bool) {
+func (w Wall) calculatePost(wo *world.Tx, pos cube.Pos) (Wall, bool) {
 	var updated bool
 	abovePos := pos.Add(cube.Pos{0, 1, 0})
 	above := wo.Block(abovePos)

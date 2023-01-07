@@ -33,7 +33,7 @@ func tickLoop(w *World) {
 }
 
 // tick performs a tick on the World and updates the time, weather, blocks and entities that require updates.
-func (t ticker) tick(txn *Txn) {
+func (t ticker) tick(txn *Tx) {
 	viewers, loaders := txn.w.allViewers()
 
 	txn.w.set.Lock()
@@ -75,7 +75,7 @@ func (t ticker) tick(txn *Txn) {
 }
 
 // tickScheduledBlocks executes scheduled block updates in chunks that are currently loaded.
-func (t ticker) tickScheduledBlocks(tick int64, txn *Txn) {
+func (t ticker) tickScheduledBlocks(tick int64, txn *Tx) {
 	for pos, scheduledTick := range txn.w.scheduledUpdates {
 		if scheduledTick > tick {
 			continue
@@ -93,7 +93,7 @@ func (t ticker) tickScheduledBlocks(tick int64, txn *Txn) {
 }
 
 // performNeighbourUpdates performs all block updates that came as a result of a neighbouring block being changed.
-func (ticker) performNeighbourUpdates(txn *Txn) {
+func (ticker) performNeighbourUpdates(txn *Tx) {
 	for _, update := range txn.w.neighbourUpdates {
 		pos, changedNeighbour := update.pos, update.neighbour
 		if ticker, ok := txn.w.block(pos).(NeighbourUpdateTicker); ok {
@@ -110,7 +110,7 @@ func (ticker) performNeighbourUpdates(txn *Txn) {
 
 // tickBlocksRandomly executes random block ticks in each sub chunk in the World that has at least one viewer
 // registered from the viewers passed.
-func (t ticker) tickBlocksRandomly(loaders []*Loader, tick int64, txn *Txn) {
+func (t ticker) tickBlocksRandomly(loaders []*Loader, tick int64, txn *Tx) {
 	r := int32(txn.w.tickRange())
 	if r == 0 {
 		// NOP if the simulation distance is 0.
@@ -181,7 +181,7 @@ func (t ticker) anyWithinDistance(pos ChunkPos, loaded []ChunkPos, r int32) bool
 
 // tickEntities ticks all entities in the World, making sure they are still located in the correct chunks and
 // updating where necessary.
-func (ticker) tickEntities(tick int64, txn *Txn) {
+func (ticker) tickEntities(tick int64, txn *Tx) {
 	type entityToMove struct {
 		e             Entity
 		after         *chunkData

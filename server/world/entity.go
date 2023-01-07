@@ -56,7 +56,7 @@ type SaveableEntityType interface {
 type TickerEntity interface {
 	Entity
 	// Tick ticks the entity with the current World and tick passed.
-	Tick(w *Txn, current int64)
+	Tick(w *Tx, current int64)
 }
 
 // EntityAction represents an action that may be performed by an entity. Typically, these actions are sent to

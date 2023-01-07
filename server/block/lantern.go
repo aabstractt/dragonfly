@@ -25,7 +25,7 @@ func (l Lantern) Model() world.BlockModel {
 }
 
 // NeighbourUpdateTick ...
-func (l Lantern) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (l Lantern) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if l.Hanging {
 		up := pos.Side(cube.FaceUp)
 		if _, ok := w.Block(up).(Chain); !ok && !w.Block(up).Model().FaceSolid(up, cube.FaceDown, w) {
@@ -47,7 +47,7 @@ func (l Lantern) LightEmissionLevel() uint8 {
 }
 
 // UseOnBlock ...
-func (l Lantern) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (l Lantern) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, face, used := firstReplaceable(w, pos, face, l)
 	if !used {
 		return false
@@ -71,7 +71,7 @@ func (l Lantern) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w
 }
 
 // SideClosed ...
-func (l Lantern) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (l Lantern) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 

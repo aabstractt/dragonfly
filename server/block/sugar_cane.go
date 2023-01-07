@@ -19,7 +19,7 @@ type SugarCane struct {
 }
 
 // UseOnBlock ensures the placement of the block is OK.
-func (c SugarCane) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (c SugarCane) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, c)
 	if !used {
 		return false
@@ -33,7 +33,7 @@ func (c SugarCane) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3,
 }
 
 // NeighbourUpdateTick ...
-func (c SugarCane) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (c SugarCane) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if !c.canGrowHere(pos, w, true) {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: c})
@@ -42,7 +42,7 @@ func (c SugarCane) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.
 }
 
 // RandomTick ...
-func (c SugarCane) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (c SugarCane) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if c.Age < 15 {
 		c.Age++
 	} else if c.Age == 15 {
@@ -62,7 +62,7 @@ func (c SugarCane) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 }
 
 // BoneMeal ...
-func (c SugarCane) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (c SugarCane) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	for _, ok := w.Block(pos.Side(cube.FaceDown)).(SugarCane); ok; _, ok = w.Block(pos.Side(cube.FaceDown)).(SugarCane) {
 		pos = pos.Side(cube.FaceDown)
 	}
@@ -78,7 +78,7 @@ func (c SugarCane) BoneMeal(pos cube.Pos, w *world.Txn) bool {
 }
 
 // canGrowHere implements logic to check if sugar cane can live/grow here.
-func (c SugarCane) canGrowHere(pos cube.Pos, w *world.Txn, recursive bool) bool {
+func (c SugarCane) canGrowHere(pos cube.Pos, w *world.Tx, recursive bool) bool {
 	if _, ok := w.Block(pos.Side(cube.FaceDown)).(SugarCane); ok && recursive {
 		return c.canGrowHere(pos.Side(cube.FaceDown), w, recursive)
 	}

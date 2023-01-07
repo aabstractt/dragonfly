@@ -48,7 +48,7 @@ func (s Sponge) EncodeBlock() (string, map[string]any) {
 
 // UseOnBlock places the sponge, absorbs nearby water if it's still dry and flags it as wet if any water has been
 // absorbed.
-func (s Sponge) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (s Sponge) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	pos, _, used = firstReplaceable(w, pos, face, s)
 	if !used {
 		return
@@ -60,7 +60,7 @@ func (s Sponge) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w 
 
 // NeighbourUpdateTick checks for nearby water flow. If water could be found and the sponge is dry, it will absorb the
 // water and be flagged as wet.
-func (s Sponge) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (s Sponge) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	// The sponge is dry, so it can absorb nearby water.
 	if !s.Wet {
 		if s.absorbWater(pos, w) > 0 {
@@ -72,7 +72,7 @@ func (s Sponge) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn
 
 // setWet flags a sponge as wet. It replaces the block at pos by a wet sponge block and displays a block break
 // particle at the sponge's position with an offset of 0.5 on each axis.
-func (s Sponge) setWet(pos cube.Pos, w *world.Txn) {
+func (s Sponge) setWet(pos cube.Pos, w *world.Tx) {
 	s.Wet = true
 	w.SetBlock(pos, s, nil)
 	w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: Water{Depth: 1}})
@@ -81,7 +81,7 @@ func (s Sponge) setWet(pos cube.Pos, w *world.Txn) {
 // absorbWater replaces water blocks near the sponge by air out to a taxicab geometry of 7 in all directions.
 // The maximum for absorbed blocks is 65.
 // The returned int specifies the amount of replaced water blocks.
-func (s Sponge) absorbWater(pos cube.Pos, w *world.Txn) int {
+func (s Sponge) absorbWater(pos cube.Pos, w *world.Tx) int {
 	// distanceToSponge binds a world.Pos to its distance from the sponge's position.
 	type distanceToSponge struct {
 		block    cube.Pos

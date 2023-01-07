@@ -20,13 +20,13 @@ type Note struct {
 }
 
 // playNote ...
-func (n Note) playNote(pos cube.Pos, w *world.Txn) {
+func (n Note) playNote(pos cube.Pos, w *world.Tx) {
 	w.PlaySound(pos.Vec3(), sound.Note{Instrument: n.instrument(pos, w), Pitch: n.Pitch})
 	w.AddParticle(pos.Vec3(), particle.Note{Instrument: n.Instrument(), Pitch: n.Pitch})
 }
 
 // updateInstrument ...
-func (n Note) instrument(pos cube.Pos, w *world.Txn) sound.Instrument {
+func (n Note) instrument(pos cube.Pos, w *world.Tx) sound.Instrument {
 	if instrumentBlock, ok := w.Block(pos.Side(cube.FaceDown)).(interface {
 		Instrument() sound.Instrument
 	}); ok {
@@ -47,7 +47,7 @@ func (n Note) EncodeNBT() map[string]any {
 }
 
 // Punch ...
-func (n Note) Punch(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User) {
+func (n Note) Punch(pos cube.Pos, clickedFace cube.Face, w *world.Tx, u item.User) {
 	if _, ok := w.Block(pos.Side(cube.FaceUp)).(Air); !ok {
 		return
 	}
@@ -55,7 +55,7 @@ func (n Note) Punch(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.Us
 }
 
 // Activate ...
-func (n Note) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Txn, u item.User, ctx *item.UseContext) bool {
+func (n Note) Activate(pos cube.Pos, clickedFace cube.Face, w *world.Tx, u item.User, ctx *item.UseContext) bool {
 	if _, ok := w.Block(pos.Side(cube.FaceUp)).(Air); !ok {
 		return false
 	}

@@ -8,7 +8,7 @@ type PumpkinPie struct {
 }
 
 // Consume ...
-func (PumpkinPie) Consume(w *world.Txn, c Consumer) Stack {
+func (PumpkinPie) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(8, 4.8)
 	return Stack{}
 }

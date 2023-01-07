@@ -13,7 +13,7 @@ type Leggings struct {
 }
 
 // Use handles the auto-equipping of leggings in an armour slot by using the item.
-func (l Leggings) Use(w *world.Txn, user User, ctx *UseContext) bool {
+func (l Leggings) Use(w *world.Tx, user User, ctx *UseContext) bool {
 	ctx.SwapHeldWithArmour(2)
 	return false
 }

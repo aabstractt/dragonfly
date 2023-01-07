@@ -20,7 +20,7 @@ type Wall struct {
 }
 
 // BBox ...
-func (w Wall) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (w Wall) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	postHeight := 0.8125
 	if w.Post {
 		postHeight = 1
@@ -42,6 +42,6 @@ func (w Wall) BBox(cube.Pos, *world.Txn) []cube.BBox {
 }
 
 // FaceSolid returns true if the face is in the Y axis.
-func (w Wall) FaceSolid(pos cube.Pos, face cube.Face, w *world.Txn) bool {
+func (w Wall) FaceSolid(pos cube.Pos, face cube.Face, w *world.Tx) bool {
 	return face.Axis() == cube.Y
 }

@@ -25,13 +25,13 @@ func (d DoubleFlower) FlammabilityInfo() FlammabilityInfo {
 }
 
 // BoneMeal ...
-func (d DoubleFlower) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (d DoubleFlower) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	dropItem(w, item.NewStack(d, 1), pos.Vec3Centre())
 	return true
 }
 
 // NeighbourUpdateTick ...
-func (d DoubleFlower) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (d DoubleFlower) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if d.UpperPart {
 		if bottom, ok := w.Block(pos.Side(cube.FaceDown)).(DoubleFlower); !ok || bottom.Type != d.Type || bottom.UpperPart {
 			w.SetBlock(pos, nil, nil)
@@ -52,7 +52,7 @@ func (d DoubleFlower) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *wor
 }
 
 // UseOnBlock ...
-func (d DoubleFlower) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (d DoubleFlower) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, d)
 	if !used {
 		return false

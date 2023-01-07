@@ -9,11 +9,11 @@ import (
 type EnchantingTable struct{}
 
 // BBox ...
-func (EnchantingTable) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (EnchantingTable) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	return []cube.BBox{cube.Box(0, 0, 0, 1, 0.75, 1)}
 }
 
 // FaceSolid ...
-func (EnchantingTable) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
+func (EnchantingTable) FaceSolid(cube.Pos, cube.Face, *world.Tx) bool {
 	return false
 }

@@ -20,7 +20,7 @@ type CocoaBean struct {
 }
 
 // BoneMeal ...
-func (c CocoaBean) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (c CocoaBean) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	if c.Age == 2 {
 		return false
 	}
@@ -35,7 +35,7 @@ func (c CocoaBean) HasLiquidDrops() bool {
 }
 
 // NeighbourUpdateTick ...
-func (c CocoaBean) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (c CocoaBean) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	var woodType WoodType
 	switch b := w.Block(pos.Side(c.Facing.Face())).(type) {
 	case Log:
@@ -49,7 +49,7 @@ func (c CocoaBean) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.
 }
 
 // UseOnBlock ...
-func (c CocoaBean) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (c CocoaBean) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, c)
 	if !used {
 		return false
@@ -78,7 +78,7 @@ func (c CocoaBean) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3,
 }
 
 // RandomTick ...
-func (c CocoaBean) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (c CocoaBean) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	if c.Age < 2 && r.Intn(5) == 0 {
 		c.Age++
 		w.SetBlock(pos, c, nil)

@@ -12,11 +12,11 @@ type Anvil struct {
 }
 
 // BBox ...
-func (a Anvil) BBox(cube.Pos, *world.Txn) []cube.BBox {
+func (a Anvil) BBox(cube.Pos, *world.Tx) []cube.BBox {
 	return []cube.BBox{full.Stretch(a.Facing.RotateLeft().Face().Axis(), -0.125)}
 }
 
 // FaceSolid ...
-func (Anvil) FaceSolid(cube.Pos, cube.Face, *world.Txn) bool {
+func (Anvil) FaceSolid(cube.Pos, cube.Face, *world.Tx) bool {
 	return false
 }

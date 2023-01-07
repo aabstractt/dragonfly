@@ -38,7 +38,7 @@ func (g TallGrass) BreakInfo() BreakInfo {
 }
 
 // BoneMeal attempts to affect the block using a bone meal item.
-func (g TallGrass) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (g TallGrass) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	upper := DoubleTallGrass{Type: g.Type.Double(), UpperPart: true}
 	if replaceableWith(w, pos.Side(cube.FaceUp), upper) {
 		w.SetBlock(pos, DoubleTallGrass{Type: g.Type.Double()}, nil)
@@ -57,7 +57,7 @@ func (g TallGrass) CompostChance() float64 {
 }
 
 // NeighbourUpdateTick ...
-func (g TallGrass) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Txn) {
+func (g TallGrass) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, w *world.Tx) {
 	if !supportsVegetation(g, w.Block(pos.Side(cube.FaceDown))) {
 		w.SetBlock(pos, nil, nil)
 		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: g})
@@ -70,7 +70,7 @@ func (g TallGrass) HasLiquidDrops() bool {
 }
 
 // UseOnBlock ...
-func (g TallGrass) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) bool {
+func (g TallGrass) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) bool {
 	pos, _, used := firstReplaceable(w, pos, face, g)
 	if !used {
 		return false

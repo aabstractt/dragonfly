@@ -27,7 +27,7 @@ type Water struct {
 }
 
 // EntityInside ...
-func (w Water) EntityInside(pos cube.Pos, wo *world.Txn, e world.Entity) {
+func (w Water) EntityInside(pos cube.Pos, wo *world.Tx, e world.Entity) {
 	if fallEntity, ok := e.(fallDistanceEntity); ok {
 		fallEntity.ResetFallDistance()
 	}
@@ -83,7 +83,7 @@ func (Water) LightDiffusionLevel() uint8 {
 }
 
 // ScheduledTick ...
-func (w Water) ScheduledTick(pos cube.Pos, wo *world.Txn, r *rand.Rand) {
+func (w Water) ScheduledTick(pos cube.Pos, wo *world.Tx, r *rand.Rand) {
 	if w.Depth == 7 {
 		// Attempt to form new water source blocks.
 		count := 0
@@ -95,7 +95,7 @@ func (w Water) ScheduledTick(pos cube.Pos, wo *world.Txn, r *rand.Rand) {
 					}
 				}
 			}
-		}, wo.World().Range())
+		}, wo.Range())
 		if count >= 2 {
 			if !canFlowInto(w, wo, pos.Side(cube.FaceDown), true) {
 				// Only form a new source block if there either is no water below this block, or if the water
@@ -113,7 +113,7 @@ func (w Water) ScheduledTick(pos cube.Pos, wo *world.Txn, r *rand.Rand) {
 }
 
 // NeighbourUpdateTick ...
-func (Water) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, wo *world.Txn) {
+func (Water) NeighbourUpdateTick(pos, changedNeighbour cube.Pos, wo *world.Tx) {
 	if wo.World().Dimension().WaterEvaporates() {
 		// Particles are spawned client-side.
 		wo.SetLiquid(pos, nil)
@@ -128,7 +128,7 @@ func (Water) LiquidType() string {
 }
 
 // Harden hardens the water if lava flows into it.
-func (w Water) Harden(pos cube.Pos, wo *world.Txn, flownIntoBy *cube.Pos) bool {
+func (w Water) Harden(pos cube.Pos, wo *world.Tx, flownIntoBy *cube.Pos) bool {
 	if flownIntoBy == nil {
 		return false
 	}

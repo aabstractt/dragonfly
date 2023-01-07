@@ -14,7 +14,7 @@ type Fence struct {
 }
 
 // BBox returns multiple physics.BBox depending on how many connections it has with the surrounding blocks.
-func (f Fence) BBox(pos cube.Pos, w *world.Txn) []cube.BBox {
+func (f Fence) BBox(pos cube.Pos, w *world.Tx) []cube.BBox {
 	const offset = 0.375
 
 	boxes := make([]cube.BBox, 0, 5)
@@ -34,6 +34,6 @@ func (f Fence) BBox(pos cube.Pos, w *world.Txn) []cube.BBox {
 }
 
 // FaceSolid returns true if the face is cube.FaceDown or cube.FaceUp.
-func (f Fence) FaceSolid(pos cube.Pos, face cube.Face, w *world.Txn) bool {
+func (f Fence) FaceSolid(pos cube.Pos, face cube.Face, w *world.Tx) bool {
 	return face == cube.FaceDown || face == cube.FaceUp
 }

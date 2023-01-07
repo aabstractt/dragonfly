@@ -16,7 +16,7 @@ type Axe struct {
 }
 
 // UseOnBlock handles the stripping of logs when a player clicks a log with an axe.
-func (a Axe) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user User, ctx *UseContext) bool {
+func (a Axe) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user User, ctx *UseContext) bool {
 	if s, ok := w.block(pos).(strippable); ok {
 		if res, ok := s.Strip(); ok {
 			w.setBlock(pos, res, nil)

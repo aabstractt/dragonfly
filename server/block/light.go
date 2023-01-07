@@ -18,7 +18,7 @@ type Light struct {
 }
 
 // SideClosed ...
-func (Light) SideClosed(cube.Pos, cube.Pos, *world.Txn) bool {
+func (Light) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 

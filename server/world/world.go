@@ -44,7 +44,6 @@ type World struct {
 	// of not being used.
 	chunks map[ChunkPos]*chunkData
 
-	entityMu sync.RWMutex
 	// entities holds a map of entities currently loaded and the last ChunkPos that the Entity was in.
 	// These are tracked so that a call to removeEntity can find the correct entity.
 	entities map[Entity]ChunkPos
@@ -95,7 +94,7 @@ func (w *World) Range() cube.Range {
 	return w.ra
 }
 
-type QueryFunc func(txn *Txn)
+type QueryFunc func(tx *Tx)
 
 func (w *World) Query(f QueryFunc) {
 	w.q <- f
@@ -103,7 +102,7 @@ func (w *World) Query(f QueryFunc) {
 
 func (w *World) run() {
 	for f := range w.q {
-		txn := &Txn{w: w}
+		txn := &Tx{w: w}
 		f(txn)
 		txn.complete.Store(true)
 	}
@@ -196,7 +195,7 @@ func (w *World) highestBlock(x, z int) int {
 // bottom face.
 func (w *World) highestObstructingBlock(x, z int) int {
 	// Create a temporary transaction, because the FaceSolid method needs one.
-	txn := &Txn{w: w}
+	txn := &Tx{w: w}
 
 	min := w.ra[0]
 	yHigh := w.highestBlock(x, z)
@@ -259,8 +258,6 @@ func (w *World) setBlock(pos cube.Pos, b Block, opts *SetOpts) {
 		delete(c.e, pos)
 	}
 
-	viewers := slices.Clone(c.v)
-
 	if !opts.DisableLiquidDisplacement {
 		var secondLayer Block
 
@@ -279,13 +276,13 @@ func (w *World) setBlock(pos cube.Pos, b Block, opts *SetOpts) {
 			}
 		}
 		if secondLayer != nil {
-			for _, viewer := range viewers {
+			for _, viewer := range c.v {
 				viewer.ViewBlockUpdate(pos, secondLayer, 1)
 			}
 		}
 	}
 
-	for _, viewer := range viewers {
+	for _, viewer := range c.v {
 		viewer.ViewBlockUpdate(pos, b, 0)
 	}
 
@@ -334,7 +331,7 @@ func (w *World) buildStructure(pos cube.Pos, s Structure) {
 			baseX, baseZ := chunkX<<4, chunkZ<<4
 			subs := c.Sub()
 			for i, sub := range subs {
-				baseY := (i + (w.Range()[0] >> 4)) << 4
+				baseY := (i + (w.ra[0] >> 4)) << 4
 				if baseY>>4 < pos[1]>>4 {
 					continue
 				} else if baseY >= maxY {
@@ -343,10 +340,10 @@ func (w *World) buildStructure(pos cube.Pos, s Structure) {
 
 				for localY := 0; localY < 16; localY++ {
 					yOffset := baseY + localY
-					if yOffset > w.Range()[1] || yOffset >= maxY {
+					if yOffset > w.ra[1] || yOffset >= maxY {
 						// We've hit the height limit for blocks.
 						break
-					} else if yOffset < w.Range()[0] || yOffset < pos[1] {
+					} else if yOffset < w.ra[0] || yOffset < pos[1] {
 						// We've got a block below the minimum, but other blocks might still reach above
 						// it, so don't break but continue.
 						continue
@@ -662,9 +659,7 @@ func (w *World) addEntity(e Entity) {
 
 	c := w.chunk(chunkPos)
 	c.entities = append(c.entities, e)
-	viewers := slices.Clone(c.v)
-
-	for _, v := range viewers {
+	for _, v := range c.v {
 		// We show the entity to all viewers currently in the chunk that the entity is spawned in.
 		showEntity(e, v)
 	}
@@ -737,13 +732,8 @@ func (w *World) entitiesWithin(box cube.BBox, ignored func(Entity) bool) []Entit
 	return m
 }
 
-// Entities returns a list of all entities currently added to the World.
-func (w *World) Entities() []Entity {
-	if w == nil {
-		return nil
-	}
-	w.entityMu.RLock()
-	defer w.entityMu.RUnlock()
+// allEntities returns a list of all entities currently added to the World.
+func (w *World) allEntities() []Entity {
 	m := make([]Entity, 0, len(w.entities))
 	for e := range w.entities {
 		m = append(m, e)
@@ -769,7 +759,7 @@ func (w *World) Spawn() cube.Pos {
 	w.set.Lock()
 	s := w.set.Spawn
 	w.set.Unlock()
-	if s[1] > w.Range()[1] {
+	if s[1] > w.ra[1] {
 		s[1] = w.highestObstructingBlock(s[0], s[2]) + 1
 	}
 	return s
@@ -898,14 +888,14 @@ func (w *World) scheduleBlockUpdate(pos cube.Pos, delay time.Duration) {
 
 // doBlockUpdatesAround schedules block updates directly around and on the position passed.
 func (w *World) doBlockUpdatesAround(pos cube.Pos) {
-	if pos.OutOfBounds(w.Range()) {
+	if pos.OutOfBounds(w.ra) {
 		return
 	}
 
 	w.updateNeighbour(pos, pos)
 	pos.Neighbours(func(neighbour cube.Pos) {
 		w.updateNeighbour(neighbour, pos)
-	}, w.Range())
+	}, w.ra)
 }
 
 // neighbourUpdate represents a position that needs to be updated because of a neighbour that changed.
@@ -970,7 +960,7 @@ func (w *World) close() {
 
 	w.conf.Log.Debugf("Saving chunks in memory to disk...")
 
-	w.Query(func(txn *Txn) {
+	w.Query(func(txn *Tx) {
 		for pos, c := range w.chunks {
 			w.saveChunk(pos, c)
 		}
@@ -1102,12 +1092,12 @@ func (w *World) chunk(pos ChunkPos) *chunkData {
 func (w *World) loadChunk(pos ChunkPos) (*chunkData, error) {
 	c, found, err := w.provider().LoadChunk(pos, w.conf.Dim)
 	if err != nil {
-		return newChunkData(chunk.New(airRID, w.Range())), err
+		return newChunkData(chunk.New(airRID, w.ra)), err
 	}
 
 	if !found {
 		// The provider doesn't have a chunk saved at this position, so we generate a new one.
-		data := newChunkData(chunk.New(airRID, w.Range()))
+		data := newChunkData(chunk.New(airRID, w.ra))
 		w.chunks[pos] = data
 		w.conf.Generator.GenerateChunk(pos, data.Chunk)
 		return data, nil
@@ -1237,17 +1227,20 @@ func (w *World) chunkCacheJanitor() {
 	for {
 		select {
 		case <-t.C:
-			for pos, c := range w.chunks {
-				if len(c.v) == 0 {
-					// TODO: Put all this stuff in a transaction. Also consider
-					//  moving saveChunk to a separate goroutine.
-					w.saveChunk(pos, c)
-					delete(w.chunks, pos)
-				}
-			}
+			w.Query(saveUnusedChunks)
 		case <-w.closing:
 			w.running.Done()
 			return
+		}
+	}
+}
+
+func saveUnusedChunks(tx *Tx) {
+	w := tx.World()
+	for pos, c := range w.chunks {
+		if len(c.v) == 0 {
+			w.saveChunk(pos, c)
+			delete(w.chunks, pos)
 		}
 	}
 }

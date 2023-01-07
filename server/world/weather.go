@@ -185,7 +185,7 @@ func (w weather) lightningPosition(c ChunkPos) mgl64.Vec3 {
 	v := w.w.r.Int31()
 	x, z := float64(c[0]<<4+(v&0xf)), float64(c[1]<<4+((v>>8)&0xf))
 	// Create a temporary transaction, because the FaceSolid method needs one.
-	txn := &Txn{w: w.w}
+	txn := &Tx{w: w.w}
 
 	vec := w.adjustPositionToEntities(mgl64.Vec3{x, float64(w.w.highestBlock(int(x), int(z)) + 1), z})
 	if pos := cube.PosFromVec3(vec); len(w.w.block(pos).Model().BBox(pos, txn)) != 0 {

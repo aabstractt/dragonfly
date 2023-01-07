@@ -72,7 +72,7 @@ func (li *Lightning) Rotation() (c cube.Rotation) {
 }
 
 // Tick ...
-func (li *Lightning) Tick(w *world.Txn, current int64) {
+func (li *Lightning) Tick(w *world.Tx, current int64) {
 	f := fire().(interface {
 		Start(w *world.World, pos cube.Pos)
 	})

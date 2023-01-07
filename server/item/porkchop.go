@@ -11,7 +11,7 @@ type Porkchop struct {
 }
 
 // Consume ...
-func (p Porkchop) Consume(w *world.Txn, c Consumer) Stack {
+func (p Porkchop) Consume(w *world.Tx, c Consumer) Stack {
 	if p.Cooked {
 		c.Saturate(8, 12.8)
 	} else {

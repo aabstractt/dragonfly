@@ -44,7 +44,7 @@ func (g Grass) SoilFor(block world.Block) bool {
 }
 
 // RandomTick handles the ticking of grass, which may or may not result in the spreading of grass onto dirt.
-func (g Grass) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
+func (g Grass) RandomTick(pos cube.Pos, w *world.Tx, r *rand.Rand) {
 	aboveLight := w.Light(pos.Side(cube.FaceUp))
 	if aboveLight < 4 {
 		// The light above the block is too low: The grass turns to dirt.
@@ -78,7 +78,7 @@ func (g Grass) RandomTick(pos cube.Pos, w *world.Txn, r *rand.Rand) {
 }
 
 // BoneMeal ...
-func (g Grass) BoneMeal(pos cube.Pos, w *world.Txn) bool {
+func (g Grass) BoneMeal(pos cube.Pos, w *world.Tx) bool {
 	for i := 0; i < 14; i++ {
 		c := pos.Add(cube.Pos{rand.Intn(6) - 3, 0, rand.Intn(6) - 3})
 		above := c.Side(cube.FaceUp)

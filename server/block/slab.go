@@ -23,7 +23,7 @@ type Slab struct {
 
 // UseOnBlock handles the placement of slabs with relation to them being upside down or not and handles slabs
 // being turned into double slabs.
-func (s Slab) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Txn, user item.User, ctx *item.UseContext) (used bool) {
+func (s Slab) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, w *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
 	id, meta := s.EncodeItem()
 	clickedBlock := w.Block(pos)
 	if clickedSlab, ok := clickedBlock.(Slab); ok && !s.Double {
@@ -90,7 +90,7 @@ func (s Slab) CanDisplace(b world.Liquid) bool {
 }
 
 // SideClosed ...
-func (s Slab) SideClosed(pos, side cube.Pos, w *world.Txn) bool {
+func (s Slab) SideClosed(pos, side cube.Pos, w *world.Tx) bool {
 	// Only returns true if the side is below the slab and if the slab is not upside down.
 	return !s.Top && side[1] == pos[1]-1
 }

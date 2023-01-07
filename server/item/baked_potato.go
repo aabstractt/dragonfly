@@ -8,7 +8,7 @@ type BakedPotato struct {
 }
 
 // Consume ...
-func (BakedPotato) Consume(w *world.Txn, c Consumer) Stack {
+func (BakedPotato) Consume(w *world.Tx, c Consumer) Stack {
 	c.Saturate(5, 6)
 	return Stack{}
 }
