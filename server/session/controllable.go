@@ -83,6 +83,11 @@ type Controllable interface {
 
 	Exhaust(points float64)
 
+	// AnvilUse is called when the player uses an anvil. The input is the item that the player is using
+	// to repair or modify, the material is the item that the player is using to repair the input, the result is the
+	// item that the player will receive after repairing, and anvilCost is the cost of the repair.
+	AnvilUse(pos cube.Pos, input, material, result item.Stack, anvilCost *int) bool
+
 	OpenSign(pos cube.Pos, frontSide bool)
 	EditSign(pos cube.Pos, frontText, backText string) error
 	TurnLecternPage(pos cube.Pos, page int) error

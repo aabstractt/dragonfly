@@ -37,6 +37,11 @@ type Handler interface {
 	// HandleFoodLoss handles the food bar of a player depleting naturally, for example because the player was
 	// sprinting and jumping. ctx.Cancel() may be called to cancel the food points being lost.
 	HandleFoodLoss(ctx *event.Context, from int, to *int)
+	// HandleAnvilUse handles the player using an anvil. ctx.Cancel() may be called to cancel the anvil use.
+	// The position of the anvil, the input item, the material item, the result item and the cost of the anvil
+	// We provide the position of the anvil because maybe you need cancel some anvil uses on specific positions.
+	// You can use the player position, but it is different to where the anvil is.
+	HandleAnvilUse(ctx *event.Context, pos cube.Pos, input, material, result item.Stack, anvilCost *int)
 	// HandleHeal handles the player being healed by a healing source. ctx.Cancel() may be called to cancel
 	// the healing.
 	// The health added may be changed by assigning to *health.
@@ -170,6 +175,8 @@ func (NopHandler) HandlePunchAir(*event.Context)                                
 func (NopHandler) HandleHurt(*event.Context, *float64, *time.Duration, world.DamageSource)    {}
 func (NopHandler) HandleHeal(*event.Context, *float64, world.HealingSource)                   {}
 func (NopHandler) HandleFoodLoss(*event.Context, int, *int)                                   {}
-func (NopHandler) HandleDeath(world.DamageSource, *bool)                                      {}
-func (NopHandler) HandleRespawn(*mgl64.Vec3, **world.World)                                   {}
-func (NopHandler) HandleQuit()                                                                {}
+func (NopHandler) HandleAnvilUse(*event.Context, cube.Pos, item.Stack, item.Stack, item.Stack, *int) {
+}
+func (NopHandler) HandleDeath(world.DamageSource, *bool)    {}
+func (NopHandler) HandleRespawn(*mgl64.Vec3, **world.World) {}
+func (NopHandler) HandleQuit()                              {}

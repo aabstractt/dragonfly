@@ -115,6 +115,10 @@ func (h *ItemStackRequestHandler) handleCraftRecipeOptional(a *protocol.CraftRec
 		return fmt.Errorf("impossible cost")
 	}
 
+	if !s.c.AnvilUse(pos, input, material, result, &cost) {
+		return fmt.Errorf("anvil use was cancelled")
+	}
+
 	// Ensure we have enough levels (or if we're in creative mode, ignore the cost) to perform the action.
 	level := s.c.ExperienceLevel()
 	if level < cost && !c {

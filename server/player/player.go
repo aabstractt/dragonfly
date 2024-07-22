@@ -829,6 +829,16 @@ func (p *Player) Exhaust(points float64) {
 	p.sendFood()
 }
 
+// AnvilUse is called when the player uses an anvil. The input is the item that the player is using
+// to repair or modify, the material is the item that the player is using to repair the input, the result is the
+// item that the player will receive after repairing, and anvilCost is the cost of the repair.
+func (p *Player) AnvilUse(pos cube.Pos, input, material, result item.Stack, anvilCost *int) bool {
+	ctx := event.C()
+	p.Handler().HandleAnvilUse(ctx, pos, input, material, result, anvilCost)
+
+	return ctx.Cancelled()
+}
+
 // Dead checks if the player is considered dead. True is returned if the health of the player is equal to or
 // lower than 0.
 func (p *Player) Dead() bool {
