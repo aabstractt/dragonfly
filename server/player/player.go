@@ -836,7 +836,7 @@ func (p *Player) AnvilUse(pos cube.Pos, input, material, result item.Stack, anvi
 	ctx := event.C()
 	p.Handler().HandleAnvilUse(ctx, pos, input, material, result, anvilCost)
 
-	return ctx.Cancelled()
+	return !ctx.Cancelled()
 }
 
 // Dead checks if the player is considered dead. True is returned if the health of the player is equal to or
