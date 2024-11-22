@@ -86,7 +86,13 @@ func (s *Session) SendScoreboard(sb *scoreboard.Scoreboard) {
 		if len(pk.Entries) > 0 {
 			s.writePacket(pk)
 		}
+
+		if len(sb.Lines()) > len(currentLines) {
+			lines := append([]string(nil), sb.Lines()...)
+			s.currentLines.Store(&lines)
+		}
 	}
+
 	pk := &packet.SetScore{ActionType: packet.ScoreboardActionModify}
 	for k, line := range sb.Lines() {
 		if len(line) == 0 {
