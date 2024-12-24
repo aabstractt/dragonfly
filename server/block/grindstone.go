@@ -5,7 +5,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/go-gl/mathgl/mgl64"
 )
 
@@ -26,17 +25,17 @@ func (g Grindstone) BreakInfo() BreakInfo {
 }
 
 // Activate ...
-func (g Grindstone) Activate(pos cube.Pos, _ cube.Face, _ *world.World, u item.User, _ *item.UseContext) bool {
+func (g Grindstone) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	if opener, ok := u.(ContainerOpener); ok {
-		opener.OpenBlockContainer(pos)
+		opener.OpenBlockContainer(pos, tx)
 		return true
 	}
 	return false
 }
 
 // UseOnBlock ...
-func (g Grindstone) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
-	pos, face, used = firstReplaceable(w, pos, face, g)
+func (g Grindstone) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
+	pos, face, used = firstReplaceable(tx, pos, face, g)
 	if !used {
 		return false
 	}
@@ -47,22 +46,22 @@ func (g Grindstone) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *wo
 		g.Attach = WallGrindstoneAttachment()
 		g.Facing = face.Direction()
 	}
-	place(w, pos, g, user, ctx)
+	place(tx, pos, g, user, ctx)
 	return placed(ctx)
 }
 
 // NeighbourUpdateTick ...
-func (g Grindstone) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (g Grindstone) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
 	supportFace := g.Facing.Face().Opposite()
 	if g.Attach == HangingGrindstoneAttachment() {
 		supportFace = cube.FaceUp
 	} else if g.Attach == StandingGrindstoneAttachment() {
 		supportFace = cube.FaceDown
 	}
-	if _, ok := w.Block(pos.Side(supportFace)).Model().(model.Empty); ok {
-		w.SetBlock(pos, nil, nil)
-		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: g})
-		dropItem(w, item.NewStack(g, 1), pos.Vec3Centre())
+	if _, ok := tx.Block(pos.Side(supportFace)).Model().(model.Empty); ok {
+		// Grindstone is pickaxeHarvestable, so don't use breakBlock() here.
+		breakBlockNoDrops(g, pos, tx)
+		dropItem(tx, item.NewStack(g, 1), pos.Vec3Centre())
 	}
 }
 

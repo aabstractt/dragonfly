@@ -5,7 +5,6 @@ import (
 	"github.com/df-mc/dragonfly/server/internal/nbtconv"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/go-gl/mathgl/mgl64"
 	"time"
 )
@@ -41,36 +40,30 @@ func (Banner) FuelInfo() item.FuelInfo {
 }
 
 // UseOnBlock ...
-func (b Banner) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) (used bool) {
-	pos, face, used = firstReplaceable(w, pos, face, b)
+func (b Banner) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) (used bool) {
+	pos, face, used = firstReplaceable(tx, pos, face, b)
 	if !used || face == cube.FaceDown {
 		return false
 	}
 
 	if face == cube.FaceUp {
 		b.Attach = StandingAttachment(user.Rotation().Orientation().Opposite())
-		place(w, pos, b, user, ctx)
+		place(tx, pos, b, user, ctx)
 		return
 	}
 	b.Attach = WallAttachment(face.Direction())
-	place(w, pos, b, user, ctx)
+	place(tx, pos, b, user, ctx)
 	return placed(ctx)
 }
 
 // NeighbourUpdateTick ...
-func (b Banner) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
+func (b Banner) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
 	if b.Attach.hanging {
-		if _, ok := w.Block(pos.Side(b.Attach.facing.Opposite().Face())).(Air); ok {
-			w.SetBlock(pos, nil, nil)
-			w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
-			dropItem(w, item.NewStack(b, 1), pos.Vec3Centre())
+		if _, ok := tx.Block(pos.Side(b.Attach.facing.Opposite().Face())).(Air); ok {
+			breakBlock(b, pos, tx)
 		}
-		return
-	}
-	if _, ok := w.Block(pos.Side(cube.FaceDown)).(Air); ok {
-		w.SetBlock(pos, nil, nil)
-		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
-		dropItem(w, item.NewStack(b, 1), pos.Vec3Centre())
+	} else if _, ok := tx.Block(pos.Side(cube.FaceDown)).(Air); ok {
+		breakBlock(b, pos, tx)
 	}
 }
 
@@ -103,7 +96,10 @@ func (b Banner) EncodeNBT() map[string]any {
 
 // DecodeNBT ...
 func (b Banner) DecodeNBT(m map[string]any) any {
-	b.Colour = invertColourID(int16(nbtconv.Int32(m, "Base")))
+	if _, ok := m["Base"]; ok {
+		// Banner items do not have the Base NBT.
+		b.Colour = invertColourID(int16(nbtconv.Int32(m, "Base")))
+	}
 	b.Illager = nbtconv.Int32(m, "Type") == 1
 	if patterns := nbtconv.Slice(m, "Patterns"); patterns != nil {
 		b.Patterns = make([]BannerPatternLayer, len(patterns))

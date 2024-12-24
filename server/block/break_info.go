@@ -5,8 +5,10 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/enchantment"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/dragonfly/server/world/particle"
 	"math"
 	"math/rand"
+	"slices"
 	"time"
 )
 
@@ -36,8 +38,8 @@ func BreakDuration(b world.Block, i item.Stack) time.Duration {
 	}
 	if info.Effective(t) {
 		eff := t.BaseMiningEfficiency(b)
-		if e, ok := i.Enchantment(enchantment.Efficiency{}); ok {
-			eff += (enchantment.Efficiency{}).Addend(e.Level())
+		if e, ok := i.Enchantment(enchantment.Efficiency); ok {
+			eff += enchantment.Efficiency.Addend(e.Level())
 		}
 		breakTime /= eff
 	}
@@ -65,8 +67,8 @@ func BreaksInstantly(b world.Block, i item.Stack) bool {
 
 	// TODO: Account for haste etc here.
 	efficiencyVal := 0.0
-	if e, ok := i.Enchantment(enchantment.Efficiency{}); ok {
-		efficiencyVal += (enchantment.Efficiency{}).Addend(e.Level())
+	if e, ok := i.Enchantment(enchantment.Efficiency); ok {
+		efficiencyVal += enchantment.Efficiency.Addend(e.Level())
 	}
 	hasteVal := 0.0
 	return (t.BaseMiningEfficiency(b)+efficiencyVal)*hasteVal >= hardness*30
@@ -86,7 +88,7 @@ type BreakInfo struct {
 	// Drops is a function called to get the drops of the block if it is broken using the item passed.
 	Drops func(t item.Tool, enchantments []item.Enchantment) []item.Stack
 	// BreakHandler is called after the block has broken.
-	BreakHandler func(pos cube.Pos, w *world.World, u item.User)
+	BreakHandler func(pos cube.Pos, w *world.Tx, u item.User)
 	// XPDrops is the range of XP a block can drop when broken.
 	XPDrops XPDropRange
 	// BlastResistance is the blast resistance of the block, which influences the block's ability to withstand an
@@ -119,7 +121,7 @@ func (b BreakInfo) withBlastResistance(res float64) BreakInfo {
 }
 
 // withBreakHandler sets the BreakHandler field of the BreakInfo struct to the passed value.
-func (b BreakInfo) withBreakHandler(handler func(pos cube.Pos, w *world.World, u item.User)) BreakInfo {
+func (b BreakInfo) withBreakHandler(handler func(pos cube.Pos, w *world.Tx, u item.User)) BreakInfo {
 	b.BreakHandler = handler
 	return b
 }
@@ -197,12 +199,9 @@ func oneOf(i ...world.Item) func(item.Tool, []item.Enchantment) []item.Stack {
 
 // hasSilkTouch checks if an item has the silk touch enchantment.
 func hasSilkTouch(enchantments []item.Enchantment) bool {
-	for _, enchant := range enchantments {
-		if _, ok := enchant.Type().(enchantment.SilkTouch); ok {
-			return true
-		}
-	}
-	return false
+	return slices.IndexFunc(enchantments, func(i item.Enchantment) bool {
+		return i.Type() == enchantment.SilkTouch
+	}) != -1
 }
 
 // silkTouchOneOf returns a drop function that returns 1x of the silk touch drop when silk touch exists, or 1x of the
@@ -235,4 +234,20 @@ func silkTouchOnlyDrop(it world.Item) func(t item.Tool, enchantments []item.Ench
 		}
 		return nil
 	}
+}
+
+// breakBlock removes a block, shows breaking particles and drops the drops of
+// the block as items.
+func breakBlock(b world.Block, pos cube.Pos, tx *world.Tx) {
+	breakBlockNoDrops(b, pos, tx)
+	if breakable, ok := b.(Breakable); ok {
+		for _, drop := range breakable.BreakInfo().Drops(item.ToolNone{}, nil) {
+			dropItem(tx, drop, pos.Vec3Centre())
+		}
+	}
+}
+
+func breakBlockNoDrops(b world.Block, pos cube.Pos, tx *world.Tx) {
+	tx.SetBlock(pos, nil, nil)
+	tx.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
 }

@@ -3,6 +3,7 @@ package session
 import (
 	"fmt"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
@@ -10,7 +11,7 @@ import (
 type BookEditHandler struct{}
 
 // Handle ...
-func (b BookEditHandler) Handle(p packet.Packet, s *Session) error {
+func (b BookEditHandler) Handle(p packet.Packet, s *Session, _ *world.Tx, _ Controllable) error {
 	pk := p.(*packet.BookEdit)
 
 	it, err := s.inv.Item(int(pk.InventorySlot))
@@ -67,9 +68,9 @@ func (b BookEditHandler) Handle(p packet.Packet, s *Session) error {
 		}
 		book = book.SwapPages(page, int(pk.SecondaryPageNumber))
 	case packet.BookActionSign:
-		_ = s.inv.SetItem(slot, duplicateStack(it, item.WrittenBook{Title: pk.Title, Author: pk.Author, Pages: book.Pages, Generation: item.OriginalGeneration()}))
+		_ = s.inv.SetItem(slot, it.WithItem(item.WrittenBook{Title: pk.Title, Author: pk.Author, Pages: book.Pages, Generation: item.OriginalGeneration()}))
 		return nil
 	}
-	_ = s.inv.SetItem(slot, duplicateStack(it, book))
+	_ = s.inv.SetItem(slot, it.WithItem(book))
 	return nil
 }

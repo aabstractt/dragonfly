@@ -6,7 +6,6 @@ import (
 	"github.com/df-mc/dragonfly/server/internal/nbtconv"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"math/rand"
@@ -32,26 +31,26 @@ type ItemFrame struct {
 }
 
 // Activate ...
-func (i ItemFrame) Activate(pos cube.Pos, _ cube.Face, w *world.World, u item.User, ctx *item.UseContext) bool {
+func (i ItemFrame) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
 	if !i.Item.Empty() {
 		// TODO: Item frames with maps can only be rotated four times.
 		i.Rotations = (i.Rotations + 1) % 8
-		w.PlaySound(pos.Vec3Centre(), sound.ItemFrameRotate{})
+		tx.PlaySound(pos.Vec3Centre(), sound.ItemFrameRotate{})
 	} else if held, _ := u.HeldItems(); !held.Empty() {
 		i.Item = held.Grow(-held.Count() + 1)
 		// TODO: When maps are implemented, check the item is a map, and if so, display the large version of the frame.
 		ctx.SubtractFromCount(1)
-		w.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+		tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
 	} else {
 		return true
 	}
 
-	w.SetBlock(pos, i, nil)
+	tx.SetBlock(pos, i, nil)
 	return true
 }
 
 // Punch ...
-func (i ItemFrame) Punch(pos cube.Pos, _ cube.Face, w *world.World, u item.User) {
+func (i ItemFrame) Punch(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User) {
 	if i.Item.Empty() {
 		return
 	}
@@ -60,34 +59,40 @@ func (i ItemFrame) Punch(pos cube.Pos, _ cube.Face, w *world.World, u item.User)
 		GameMode() world.GameMode
 	}); ok {
 		if rand.Float64() <= i.DropChance && !g.GameMode().CreativeInventory() {
-			dropItem(w, i.Item, pos.Vec3Centre())
+			dropItem(tx, i.Item, pos.Vec3Centre())
 		}
 	}
 	i.Item, i.Rotations = item.Stack{}, 0
-	w.PlaySound(pos.Vec3Centre(), sound.ItemFrameRemove{})
-	w.SetBlock(pos, i, nil)
+	tx.PlaySound(pos.Vec3Centre(), sound.ItemFrameRemove{})
+	tx.SetBlock(pos, i, nil)
 }
 
 // UseOnBlock ...
-func (i ItemFrame) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, w *world.World, user item.User, ctx *item.UseContext) bool {
-	pos, face, used := firstReplaceable(w, pos, face, i)
+func (i ItemFrame) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	pos, face, used := firstReplaceable(tx, pos, face, i)
 	if !used {
 		return false
 	}
-	if _, ok := w.Block(pos.Side(face.Opposite())).Model().(model.Empty); ok {
+	if _, ok := tx.Block(pos.Side(face.Opposite())).Model().(model.Empty); ok {
 		// TODO: Allow exceptions for pressure plates.
 		return false
 	}
 	i.Facing = face.Opposite()
 	i.DropChance = 1.0
 
-	place(w, pos, i, user, ctx)
+	place(tx, pos, i, user, ctx)
 	return placed(ctx)
 }
 
 // BreakInfo ...
 func (i ItemFrame) BreakInfo() BreakInfo {
-	return newBreakInfo(0.25, alwaysHarvestable, nothingEffective, oneOf(i))
+	return newBreakInfo(0.25, alwaysHarvestable, nothingEffective, func(item.Tool, []item.Enchantment) []item.Stack {
+		it := []item.Stack{item.NewStack(i, 1)}
+		if !i.Item.Empty() {
+			it = append(it, i.Item)
+		}
+		return it
+	})
 }
 
 // EncodeItem ...
@@ -144,20 +149,15 @@ func (i ItemFrame) Pick() item.Stack {
 }
 
 // SideClosed ...
-func (ItemFrame) SideClosed(cube.Pos, cube.Pos, *world.World) bool {
+func (ItemFrame) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
 	return false
 }
 
 // NeighbourUpdateTick ...
-func (i ItemFrame) NeighbourUpdateTick(pos, _ cube.Pos, w *world.World) {
-	if _, ok := w.Block(pos.Side(i.Facing)).Model().(model.Empty); ok {
+func (i ItemFrame) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+	if _, ok := tx.Block(pos.Side(i.Facing)).Model().(model.Empty); ok {
 		// TODO: Allow exceptions for pressure plates.
-		w.SetBlock(pos, nil, nil)
-		w.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: i})
-		dropItem(w, item.NewStack(i, 1), pos.Vec3Centre())
-		if !i.Item.Empty() {
-			dropItem(w, i.Item, pos.Vec3Centre())
-		}
+		breakBlock(i, pos, tx)
 	}
 }
 

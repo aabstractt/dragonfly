@@ -2,6 +2,7 @@ package item
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
 	"slices"
 	"sort"
@@ -29,8 +30,6 @@ type Stack struct {
 	data map[string]any
 
 	enchantments map[EnchantmentType]Enchantment
-
-	armourTrim *ArmourTrim
 }
 
 // NewStack returns a new stack using the item type and the count passed. NewStack panics if the count passed
@@ -43,31 +42,6 @@ func NewStack(t world.Item, count int) Stack {
 		panic("cannot have a stack with item type nil")
 	}
 	return Stack{item: t, count: count, id: newID()}
-}
-
-// WithArmourTrim returns a new stack with the ArmourTrim passed.
-// This only applies if the stack is type Armour.
-func (s Stack) WithArmourTrim(trim ArmourTrim) Stack {
-	if _, ok := s.item.(Armour); !ok {
-		return s
-	}
-
-	s.armourTrim = &trim
-	return s
-}
-
-// WithoutArmourTrim returns the current stack but with the armour trim removed.
-func (s Stack) WithoutArmourTrim() Stack {
-	s.armourTrim = nil
-	return s
-}
-
-// ArmourTrim returns the ArmourTrim and true if present, otherwise false is returned.
-func (s Stack) ArmourTrim() (ArmourTrim, bool) {
-	if s.armourTrim != nil {
-		return *s.armourTrim, true
-	}
-	return ArmourTrim{}, false
 }
 
 // Count returns the amount of items that is present on the stack. The count is guaranteed never to be
@@ -237,7 +211,7 @@ func (s Stack) Lore() []string {
 // WithValue stores Values by encoding them using the encoding/gob package. Users of WithValue must ensure
 // that their value is valid for encoding with this package.
 func (s Stack) WithValue(key string, val any) Stack {
-	s.data = copyMap(s.data)
+	s.data = cloneMap(s.data)
 	if val != nil {
 		s.data[key] = val
 	} else {
@@ -259,7 +233,7 @@ func (s Stack) WithEnchantments(enchants ...Enchantment) Stack {
 	if _, ok := s.item.(Book); ok {
 		s.item = EnchantedBook{}
 	}
-	s.enchantments = copyEnchantments(s.enchantments)
+	s.enchantments = cloneMap(s.enchantments)
 	for _, enchant := range enchants {
 		if _, ok := s.Item().(EnchantedBook); !ok && !enchant.t.CompatibleWithItem(s.item) {
 			// Enchantment is not compatible with the item.
@@ -272,7 +246,7 @@ func (s Stack) WithEnchantments(enchants ...Enchantment) Stack {
 
 // WithoutEnchantments returns the current stack but with the passed enchantments removed.
 func (s Stack) WithoutEnchantments(enchants ...EnchantmentType) Stack {
-	s.enchantments = copyEnchantments(s.enchantments)
+	s.enchantments = cloneMap(s.enchantments)
 	for _, enchant := range enchants {
 		delete(s.enchantments, enchant)
 	}
@@ -292,10 +266,7 @@ func (s Stack) Enchantment(enchant EnchantmentType) (Enchantment, bool) {
 // Enchantments returns an array of all Enchantments on the item. Enchantments returns the enchantments of a Stack in a
 // deterministic order.
 func (s Stack) Enchantments() []Enchantment {
-	e := make([]Enchantment, 0, len(s.enchantments))
-	for _, ench := range s.enchantments {
-		e = append(e, ench)
-	}
+	e := slices.Collect(maps.Values(s.enchantments))
 	sort.Slice(e, func(i, j int) bool {
 		id1, _ := EnchantmentID(e[i].t)
 		id2, _ := EnchantmentID(e[j].t)
@@ -321,6 +292,20 @@ func (s Stack) WithAnvilCost(anvilCost int) Stack {
 	}
 	s.anvilCost = anvilCost
 	return s
+}
+
+// WithItem returns a Stack with the item type passed, copying all the
+// properties from s to the new stack. Damage to an item, enchantments and anvil
+// costs are only copied if they are still applicable to the new item type.
+func (s Stack) WithItem(t world.Item) Stack {
+	cp := NewStack(t, s.count).
+		Damage(s.damage).
+		WithCustomName(s.customName).
+		WithLore(s.lore...).
+		WithEnchantments(s.Enchantments()...).
+		WithAnvilCost(s.anvilCost)
+	cp.data = s.data
+	return cp
 }
 
 // AddStack adds another stack to the stack and returns both stacks. The first stack returned will have as
@@ -398,7 +383,15 @@ func (s Stack) String() string {
 // Values returns all values associated with the stack by users. The map returned is a copy of the original:
 // Modifying it will not modify the item stack.
 func (s Stack) Values() map[string]any {
-	return copyMap(s.data)
+	return maps.Clone(s.data)
+}
+
+// cloneMap calls maps.Clone, but initialises m if it does not yet exist.
+func cloneMap[M ~map[K]V, K comparable, V any](m M) M {
+	if m == nil {
+		m = make(M)
+	}
+	return maps.Clone(m)
 }
 
 // stackID is a counter for unique stack IDs.
@@ -424,22 +417,4 @@ func id(s Stack) int32 {
 // end, which is typically used for sending messages, popups and tips.
 func format(a []any) string {
 	return strings.TrimSuffix(fmt.Sprintln(a...), "\n")
-}
-
-// copyMap makes a copy of the map passed. It does not recursively copy the map.
-func copyMap(m map[string]any) map[string]any {
-	cp := make(map[string]any, len(m))
-	for k, v := range m {
-		cp[k] = v
-	}
-	return cp
-}
-
-// copyEnchantments makes a copy of the enchantments map passed. It does not recursively copy the map.
-func copyEnchantments(m map[EnchantmentType]Enchantment) map[EnchantmentType]Enchantment {
-	cp := make(map[EnchantmentType]Enchantment, len(m))
-	for k, v := range m {
-		cp[k] = v
-	}
-	return cp
 }

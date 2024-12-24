@@ -5,10 +5,10 @@ import (
 	"math"
 )
 
-// Rotation describes the rotation of an object in the world. It holds a yaw
-// (r[0]) and pitch value (r[1]). Yaw is in the range (-180, 180) while pitch is
-// in the range (-90, 90). A positive pitch implies an entity is looking
-// downwards, while a negative pitch implies it is looking upwards.
+// Rotation describes the rotation of an object in the world in degrees. It
+// holds a yaw (r[0]) and pitch value (r[1]). Yaw is in the range (-180, 180)
+// while pitch is in the range (-90, 90). A positive pitch implies an entity is
+// looking downwards, while a negative pitch implies it is looking upwards.
 type Rotation [2]float64
 
 // Yaw returns the yaw of r (r[0]).
@@ -36,7 +36,15 @@ func (r Rotation) Add(r2 Rotation) Rotation {
 // Opposite returns the Rotation opposite r, so that
 // r.Vec3().Add(r.Opposite().Vec3()).Len() is equal to 0.
 func (r Rotation) Opposite() Rotation {
-	return Rotation{r[0] + 180, -r[1]}.fix()
+	fixed := r.fix()
+	return Rotation{fixed[0] + 180, -fixed[1]}.fix()
+}
+
+// Neg returns the negation of the Rotation. It is equivalent to creating a new
+// Rotation{-r[0], -r[1]}.
+func (r Rotation) Neg() Rotation {
+	fixed := r.fix()
+	return Rotation{-fixed[0], -fixed[1]}
 }
 
 // Direction returns the horizontal Direction that r points towards based on the

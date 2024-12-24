@@ -25,7 +25,7 @@ type Listener interface {
 func (uc UserConfig) listenerFunc(conf Config) (Listener, error) {
 	cfg := minecraft.ListenConfig{
 		MaximumPlayers:         conf.MaxPlayers,
-		StatusProvider:         statusProvider{name: conf.Name},
+		StatusProvider:         conf.StatusProvider,
 		AuthenticationDisabled: conf.AuthDisabled,
 		ResourcePacks:          conf.Resources,
 		Biomes:                 biomes(),
@@ -38,7 +38,7 @@ func (uc UserConfig) listenerFunc(conf Config) (Listener, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create minecraft listener: %w", err)
 	}
-	conf.Log.Info("Server running.", "addr", l.Addr())
+	conf.Log.Info("Listener running.", "addr", l.Addr())
 	return listener{l}, nil
 }
 

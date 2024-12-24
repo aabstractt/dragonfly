@@ -16,13 +16,13 @@ type Chicken struct {
 }
 
 // Consume ...
-func (c Chicken) Consume(_ *world.World, co Consumer) Stack {
+func (c Chicken) Consume(_ *world.Tx, co Consumer) Stack {
 	if c.Cooked {
 		co.Saturate(6, 7.2)
 	} else {
 		co.Saturate(2, 1.2)
 		if rand.Float64() < 0.3 {
-			co.AddEffect(effect.New(effect.Hunger{}, 1, 30*time.Second))
+			co.AddEffect(effect.New(effect.Hunger, 1, 30*time.Second))
 		}
 	}
 	return Stack{}

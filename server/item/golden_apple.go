@@ -20,10 +20,10 @@ func (e GoldenApple) ConsumeDuration() time.Duration {
 }
 
 // Consume ...
-func (e GoldenApple) Consume(_ *world.World, c Consumer) Stack {
+func (e GoldenApple) Consume(_ *world.Tx, c Consumer) Stack {
 	c.Saturate(4, 9.6)
-	c.AddEffect(effect.New(effect.Absorption{}, 1, 2*time.Minute))
-	c.AddEffect(effect.New(effect.Regeneration{}, 2, 5*time.Second))
+	c.AddEffect(effect.New(effect.Absorption, 1, 2*time.Minute))
+	c.AddEffect(effect.New(effect.Regeneration, 2, 5*time.Second))
 	return Stack{}
 }
 
