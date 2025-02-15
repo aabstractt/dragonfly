@@ -106,6 +106,7 @@ const (
 	hashLeaves
 	hashLectern
 	hashLight
+	hashLilyPad
 	hashLitPumpkin
 	hashLog
 	hashLoom
@@ -177,6 +178,7 @@ const (
 	hashTorch
 	hashTuff
 	hashTuffBricks
+	hashVines
 	hashWall
 	hashWater
 	hashWheatSeeds
@@ -602,6 +604,10 @@ func (l Light) Hash() (uint64, uint64) {
 	return hashLight, uint64(l.Level)
 }
 
+func (LilyPad) Hash() (uint64, uint64) {
+	return hashLilyPad, 0
+}
+
 func (l LitPumpkin) Hash() (uint64, uint64) {
 	return hashLitPumpkin, uint64(l.Facing)
 }
@@ -884,6 +890,10 @@ func (t Tuff) Hash() (uint64, uint64) {
 
 func (t TuffBricks) Hash() (uint64, uint64) {
 	return hashTuffBricks, uint64(boolByte(t.Chiseled))
+}
+
+func (v Vines) Hash() (uint64, uint64) {
+	return hashVines, uint64(boolByte(v.NorthDirection)) | uint64(boolByte(v.EastDirection))<<1 | uint64(boolByte(v.SouthDirection))<<2 | uint64(boolByte(v.WestDirection))<<3
 }
 
 func (w Wall) Hash() (uint64, uint64) {

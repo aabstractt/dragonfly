@@ -23,14 +23,15 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/login"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-	"golang.org/x/exp/maps"
 	"golang.org/x/text/language"
 	"iter"
+	"maps"
 	"os"
 	"os/exec"
 	"os/signal"
 	"runtime"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -49,7 +50,7 @@ type Server struct {
 	world, nether, end *world.World
 
 	customBlocks []protocol.BlockEntry
-	customItems  []protocol.ItemComponentEntry
+	customItems  []protocol.ItemEntry
 
 	listeners []Listener
 	incoming  chan incoming
@@ -252,7 +253,7 @@ func (srv *Server) Player(uuid uuid.UUID) (*world.EntityHandle, bool) {
 // found, the entity handle is returned and the bool returned holds a true
 // value. If not, the bool is false and the handle is nil
 func (srv *Server) PlayerByName(name string) (*world.EntityHandle, bool) {
-	if p, ok := sliceutil.SearchValue(maps.Values(srv.p), func(p *onlinePlayer) bool {
+	if p, ok := sliceutil.SearchValue(slices.Collect(maps.Values(srv.p)), func(p *onlinePlayer) bool {
 		return p.name == name
 	}); ok {
 		return p.handle, true
@@ -264,7 +265,7 @@ func (srv *Server) PlayerByName(name string) (*world.EntityHandle, bool) {
 // found, the entity handle is returned and the bool returned is true. If no
 // player with the XUID was found, nil and false are returned.
 func (srv *Server) PlayerByXUID(xuid string) (*world.EntityHandle, bool) {
-	if p, ok := sliceutil.SearchValue(maps.Values(srv.p), func(p *onlinePlayer) bool {
+	if p, ok := sliceutil.SearchValue(slices.Collect(maps.Values(srv.p)), func(p *onlinePlayer) bool {
 		return p.xuid == xuid
 	}); ok {
 		return p.handle, true
@@ -376,7 +377,7 @@ func (srv *Server) startListening() {
 // registered custom blocks. It allows block components to be created only once
 // at startup.
 func (srv *Server) makeBlockEntries() {
-	custom := maps.Values(world.CustomBlocks())
+	custom := slices.Collect(maps.Values(world.CustomBlocks()))
 	srv.customBlocks = make([]protocol.BlockEntry, len(custom))
 
 	for i, b := range custom {
@@ -393,13 +394,17 @@ func (srv *Server) makeBlockEntries() {
 // at startup
 func (srv *Server) makeItemComponents() {
 	custom := world.CustomItems()
-	srv.customItems = make([]protocol.ItemComponentEntry, len(custom))
+	srv.customItems = make([]protocol.ItemEntry, len(custom))
 
 	for _, it := range custom {
 		name, _ := it.EncodeItem()
-		srv.customItems = append(srv.customItems, protocol.ItemComponentEntry{
-			Name: name,
-			Data: iteminternal.Components(it),
+		rid, _, _ := world.ItemRuntimeID(it)
+		srv.customItems = append(srv.customItems, protocol.ItemEntry{
+			Name:           name,
+			ComponentBased: true,
+			RuntimeID:      int16(rid),
+			Version:        protocol.ItemEntryVersionDataDriven,
+			Data:           iteminternal.Components(it),
 		})
 	}
 }
@@ -440,7 +445,7 @@ func (srv *Server) finaliseConn(ctx context.Context, conn session.Conn, l Listen
 		srv.conf.Log.Debug("spawn failed: already logged in", "raddr", conn.RemoteAddr())
 		return
 	}
-	_ = conn.WritePacket(&packet.ItemComponent{Items: srv.customItems})
+	_ = conn.WritePacket(&packet.ItemRegistry{Items: srv.customItems})
 	srv.incoming <- srv.createPlayer(id, conn, d, w)
 }
 
@@ -623,23 +628,18 @@ func vec64To32(vec3 mgl64.Vec3) mgl32.Vec3 {
 // itemEntries loads a list of all custom item entries of the server, ready to
 // be sent in the StartGame packet.
 func (srv *Server) itemEntries() []protocol.ItemEntry {
-	entries := make([]protocol.ItemEntry, 0, len(itemRuntimeIDs))
+	entries := make([]protocol.ItemEntry, 0, len(vanillaItems))
 
-	for name, rid := range itemRuntimeIDs {
-		entries = append(entries, protocol.ItemEntry{
-			Name:      name,
-			RuntimeID: int16(rid),
-		})
-	}
-	for _, it := range world.CustomItems() {
-		name, _ := it.EncodeItem()
-		rid, _, _ := world.ItemRuntimeID(it)
+	for name, e := range vanillaItems {
 		entries = append(entries, protocol.ItemEntry{
 			Name:           name,
-			ComponentBased: true,
-			RuntimeID:      int16(rid),
+			RuntimeID:      int16(e.RuntimeID),
+			ComponentBased: e.ComponentBased,
+			Version:        e.Version,
+			Data:           e.Data,
 		})
 	}
+	entries = append(entries, srv.customItems...)
 	return entries
 }
 
@@ -680,13 +680,18 @@ func biomes() map[string]any {
 }
 
 var (
-	//go:embed world/item_runtime_ids.nbt
-	itemRuntimeIDData []byte
-	itemRuntimeIDs    = map[string]int32{}
+	//go:embed world/vanilla_items.nbt
+	vanillaItemsData []byte
+	vanillaItems     = map[string]struct {
+		RuntimeID      int32          `nbt:"runtime_id"`
+		ComponentBased bool           `nbt:"component_based"`
+		Version        int32          `nbt:"version"`
+		Data           map[string]any `nbt:"data,omitempty"`
+	}{}
 )
 
 // init reads all item entries from the resource JSON, and sets the according
 // values in the runtime ID maps.
 func init() {
-	_ = nbt.Unmarshal(itemRuntimeIDData, &itemRuntimeIDs)
+	_ = nbt.Unmarshal(vanillaItemsData, &vanillaItems)
 }
